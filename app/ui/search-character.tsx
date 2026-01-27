@@ -49,7 +49,7 @@ export default function SearchCharacter({
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const cacheRef = useRef(characterCache);
-  const autocompleteRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -89,9 +89,9 @@ export default function SearchCharacter({
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
 
-    // On mobile: scroll to position input at bottom
-    if (open && isMobile && autocompleteRef.current) {
-      scrollToBottom(autocompleteRef.current);
+    // On mobile: scroll to position trigger at bottom
+    if (open && isMobile && triggerRef.current) {
+      scrollToBottom(triggerRef.current);
     }
   };
 
@@ -183,14 +183,13 @@ export default function SearchCharacter({
         }}
         isOpen={isOpen}
         onOpenChange={handleOpenChange}
-        ref={autocompleteRef}
       >
         <Label>
           <h1 className='max-w-xs text-sm font-semibold leading-10 tracking-tight'>
             Search for a character
           </h1>
         </Label>
-        <Autocomplete.Trigger className='bg-background'>
+        <Autocomplete.Trigger ref={triggerRef} className='bg-background'>
           <Autocomplete.Value>
             {({
               defaultChildren,
