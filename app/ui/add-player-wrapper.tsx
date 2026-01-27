@@ -4,7 +4,7 @@ import AddPlayer from './add-player';
 
 export default async function AddPlayerWrapper() {
   const characterNames = await getCharacterNames();
-  const characters = characterNamesToAutoCompleteItems(characterNames);
+  const characters = characterNamesToAutoCompleteItems(characterNames.sort());
 
   return <AddPlayer characters={characters} />;
 }
