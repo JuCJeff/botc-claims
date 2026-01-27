@@ -95,6 +95,11 @@ export default function SearchCharacter({
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
+
+    // On mobile: scroll when user types
+    if (isMobile && triggerRef.current) {
+      scrollToBottom(triggerRef.current);
+    }
   };
 
   const handleOpenChange = async (open: boolean) => {
