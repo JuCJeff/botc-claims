@@ -51,33 +51,42 @@ export default function SearchCharacter({
   const cacheRef = useRef(characterCache);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = async (element: HTMLElement) => {
-    // Use visualViewport height (excludes keyboard) or fall back to innerHeight
+  const hasScrolledRef = useRef(false);
+
+  const scrollToBottom = (element: HTMLElement) => {
+    const bottomPadding = 16;
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
     const targetY =
       element.getBoundingClientRect().top +
       window.scrollY -
       visibleHeight +
-      element.offsetHeight;
+      element.offsetHeight +
+      bottomPadding;
 
-    await animate(window.scrollY, targetY, {
-      duration: 0.1,
+    animate(window.scrollY, targetY, {
+      duration: 0.2,
       ease: 'easeOut',
       onUpdate: (value: number) => window.scrollTo(0, value),
     });
   };
 
-  const handleOpenChange = async (open: boolean) => {
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+
+    // Only scroll on first keystroke
+    if (value && !hasScrolledRef.current && autocompleteRef.current) {
+      scrollToBottom(autocompleteRef.current);
+      hasScrolledRef.current = true;
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+
+    // Reset scroll flag when popover closes
     if (!open) {
-      setIsOpen(false);
-      return;
+      hasScrolledRef.current = false;
     }
-
-    if (autocompleteRef.current) {
-      await scrollToBottom(autocompleteRef.current);
-    }
-
-    setIsOpen(true);
   };
 
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -228,7 +237,7 @@ export default function SearchCharacter({
               name='search'
               aria-label='Search for a character'
               value={searchValue}
-              onChange={setSearchValue}
+              onChange={handleSearchChange}
             >
               <SearchField.Group>
                 <SearchField.SearchIcon aria-label='Search icon' />
