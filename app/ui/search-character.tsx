@@ -52,9 +52,20 @@ export default function SearchCharacter({
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
   const hasScrolledRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   const scrollToBottom = (element: HTMLElement) => {
     const bottomPadding = 16;
+    
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
     const targetY =
       element.getBoundingClientRect().top +
@@ -230,7 +241,10 @@ export default function SearchCharacter({
           </Autocomplete.Value>
           <Autocomplete.Indicator aria-label='Toggle dropdown' />
         </Autocomplete.Trigger>
-        <Autocomplete.Popover className='bg-background'>
+        <Autocomplete.Popover
+          className='bg-background'
+          {...(isMobile && { placement: 'top' })}
+        >
           <Autocomplete.Filter filter={contains}>
             <SearchField
               autoFocus
