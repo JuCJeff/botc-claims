@@ -30,6 +30,7 @@ const CharacterToken = ({ character }: CharacterDetailsType) => {
             src='/blank_token.png'
             alt='Blank token'
             fill
+            sizes='280px'
             className='object-contain'
           />
 
