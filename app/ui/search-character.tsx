@@ -10,7 +10,6 @@ import {
   SearchField,
   Tag,
   TagGroup,
-  TextArea,
   useFilter,
 } from '@heroui/react';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
@@ -51,8 +50,6 @@ export default function SearchCharacter({
   const [isOpen, setIsOpen] = useState(false);
   const cacheRef = useRef(characterCache);
   const triggerRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const savedScrollPosRef = useRef<number | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
   const isScrollingRef = useRef(false);
@@ -134,29 +131,6 @@ export default function SearchCharacter({
     }
 
     setIsOpen(true);
-  };
-
-  // TextArea handlers - scroll into view on focus, restore position on blur
-  const handleTextAreaFocus = () => {
-    if (isMobile && textAreaRef.current) {
-      // Save current scroll position
-      savedScrollPosRef.current = window.scrollY;
-      // Use native scrollIntoView which handles keyboard visibility
-      textAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
-  const handleTextAreaBlur = () => {
-    if (isMobile && savedScrollPosRef.current !== null) {
-      // Restore previous scroll position
-      animate(window.scrollY, savedScrollPosRef.current, {
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        onUpdate: (value: number) => window.scrollTo(0, value),
-      });
-      savedScrollPosRef.current = null;
-    }
   };
 
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -341,15 +315,6 @@ export default function SearchCharacter({
         </Autocomplete.Popover>
       </Autocomplete>
 
-      <TextArea
-        ref={textAreaRef}
-        aria-label='Notes on player'
-        className='h-auto w-xs text-base my-4 bg-background'
-        placeholder='Notes'
-        rows={3}
-        onFocus={handleTextAreaFocus}
-        onBlur={handleTextAreaBlur}
-      />
     </div>
   );
 }
