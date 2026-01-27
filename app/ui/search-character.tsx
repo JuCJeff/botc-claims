@@ -344,7 +344,7 @@ export default function SearchCharacter({
       <TextArea
         ref={textAreaRef}
         aria-label='Notes on player'
-        className='h-auto w-xs text-sm my-4 bg-background'
+        className='h-auto w-xs text-base my-4 bg-background'
         placeholder='Notes'
         rows={3}
         onFocus={handleTextAreaFocus}
