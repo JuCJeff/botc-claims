@@ -63,27 +63,33 @@ export default function SearchCharacter({
   }, []);
 
 
-  const scrollToBottom = useCallback((element: HTMLElement) => {
-    const bottomPadding = 16;
-    const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
-    const elementRect = element.getBoundingClientRect();
+  const scrollToBottom = useCallback((element: HTMLElement): Promise<void> => {
+    return new Promise((resolve) => {
+      const bottomPadding = 100; // More padding to keep trigger visible above keyboard
+      const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+      const elementRect = element.getBoundingClientRect();
 
-    // Target: position trigger at bottom of visible area (above keyboard)
-    const targetY =
-      elementRect.top +
-      window.scrollY -
-      visibleHeight +
-      element.offsetHeight +
-      bottomPadding;
+      // Target: position trigger above the keyboard area
+      const targetY =
+        elementRect.top +
+        window.scrollY -
+        visibleHeight +
+        element.offsetHeight +
+        bottomPadding;
 
-    // Skip if already at target position
-    if (Math.abs(window.scrollY - targetY) < 1) return;
+      // Skip if already at target position
+      if (Math.abs(window.scrollY - targetY) < 1) {
+        resolve();
+        return;
+      }
 
-    animate(window.scrollY, targetY, {
-      type: 'spring',
-      stiffness: 300,
-      damping: 30,
-      onUpdate: (value: number) => window.scrollTo(0, value),
+      animate(window.scrollY, targetY, {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+        onUpdate: (value: number) => window.scrollTo(0, value),
+        onComplete: () => resolve(),
+      });
     });
   }, []);
 
@@ -91,11 +97,21 @@ export default function SearchCharacter({
     setSearchValue(value);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+  const handleOpenChange = async (open: boolean) => {
+    if (!open) {
+      setIsOpen(false);
+      return;
+    }
+
+    // On mobile: scroll first, then open popover
+    if (isMobile && triggerRef.current) {
+      await scrollToBottom(triggerRef.current);
+    }
+
+    setIsOpen(true);
   };
 
-  // On mobile: scroll when keyboard appears (visualViewport resizes)
+  // On mobile: re-scroll when keyboard appears (visualViewport resizes)
   useEffect(() => {
     if (!isOpen || !isMobile) return;
 
