@@ -10,6 +10,7 @@ import {
   SearchField,
   Tag,
   TagGroup,
+  TextArea,
   useFilter,
 } from '@heroui/react';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
@@ -314,6 +315,13 @@ export default function SearchCharacter({
           </Autocomplete.Filter>
         </Autocomplete.Popover>
       </Autocomplete>
+
+      <TextArea
+        aria-label='Notes on player'
+        className='h-auto w-xs text-sm font-light my-4 bg-background'
+        placeholder='Notes'
+        rows={3}
+      />
     </div>
   );
 }
