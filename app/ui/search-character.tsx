@@ -71,7 +71,8 @@ export default function SearchCharacter({
         return;
       }
 
-      const bottomPadding = 100;
+      const extraPadding = 16; // Small extra space above trigger
+      const bottomPadding = element.offsetHeight + extraPadding;
       const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
       const elementRect = element.getBoundingClientRect();
 
