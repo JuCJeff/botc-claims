@@ -62,24 +62,12 @@ export default function SearchCharacter({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const scrollIfNeeded = useCallback((element: HTMLElement) => {
+  const scrollToBottom = useCallback((element: HTMLElement) => {
     const bottomPadding = 16;
-    const popoverHeight = 300; // approximate: min-h-42 + search field
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
     const elementRect = element.getBoundingClientRect();
 
-    // Check if there's enough space above input for the popover
-    const spaceAbove = elementRect.top;
-    const spaceBelow = visibleHeight - elementRect.bottom;
-    const totalNeeded = popoverHeight + element.offsetHeight;
-
-    // Only scroll if content would exceed visible area
-    const needsScroll = isMobile
-      ? spaceAbove < popoverHeight // popover opens on top
-      : spaceAbove + spaceBelow < totalNeeded; // default behavior
-
-    if (!needsScroll) return;
-
+    // Target: position input at bottom of visible area (above keyboard)
     const targetY =
       elementRect.top +
       window.scrollY -
@@ -92,7 +80,7 @@ export default function SearchCharacter({
       ease: 'easeOut',
       onUpdate: (value: number) => window.scrollTo(0, value),
     });
-  }, [isMobile]);
+  }, []);
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
@@ -100,21 +88,12 @@ export default function SearchCharacter({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+
+    // On mobile: scroll to position input at bottom
+    if (open && isMobile && autocompleteRef.current) {
+      scrollToBottom(autocompleteRef.current);
+    }
   };
-
-  // Scroll when keyboard appears (visualViewport resizes after clicking trigger)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleViewportResize = () => {
-      if (autocompleteRef.current) {
-        scrollIfNeeded(autocompleteRef.current);
-      }
-    };
-
-    window.visualViewport?.addEventListener('resize', handleViewportResize);
-    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize);
-  }, [isOpen, scrollIfNeeded]);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
