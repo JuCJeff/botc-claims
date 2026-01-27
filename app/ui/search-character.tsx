@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { animate } from 'motion/react';
 import {
   Autocomplete,
@@ -62,7 +62,7 @@ export default function SearchCharacter({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const scrollIfNeeded = (element: HTMLElement) => {
+  const scrollIfNeeded = useCallback((element: HTMLElement) => {
     const bottomPadding = 16;
     const popoverHeight = 300; // approximate: min-h-42 + search field
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -92,7 +92,7 @@ export default function SearchCharacter({
       ease: 'easeOut',
       onUpdate: (value: number) => window.scrollTo(0, value),
     });
-  };
+  }, [isMobile]);
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
@@ -100,11 +100,21 @@ export default function SearchCharacter({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-
-    if (open && autocompleteRef.current) {
-      scrollIfNeeded(autocompleteRef.current);
-    }
   };
+
+  // Scroll when keyboard appears (visualViewport resizes after clicking trigger)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleViewportResize = () => {
+      if (autocompleteRef.current) {
+        scrollIfNeeded(autocompleteRef.current);
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize);
+  }, [isOpen, scrollIfNeeded]);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
