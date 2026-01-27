@@ -51,7 +51,6 @@ export default function SearchCharacter({
   const cacheRef = useRef(characterCache);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  const hasScrolledRef = useRef(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -63,12 +62,26 @@ export default function SearchCharacter({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  const scrollToBottom = (element: HTMLElement) => {
+  const scrollIfNeeded = (element: HTMLElement) => {
     const bottomPadding = 16;
-    
+    const popoverHeight = 300; // approximate: min-h-42 + search field
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+    const elementRect = element.getBoundingClientRect();
+
+    // Check if there's enough space above input for the popover
+    const spaceAbove = elementRect.top;
+    const spaceBelow = visibleHeight - elementRect.bottom;
+    const totalNeeded = popoverHeight + element.offsetHeight;
+
+    // Only scroll if content would exceed visible area
+    const needsScroll = isMobile
+      ? spaceAbove < popoverHeight // popover opens on top
+      : spaceAbove + spaceBelow < totalNeeded; // default behavior
+
+    if (!needsScroll) return;
+
     const targetY =
-      element.getBoundingClientRect().top +
+      elementRect.top +
       window.scrollY -
       visibleHeight +
       element.offsetHeight +
@@ -83,20 +96,13 @@ export default function SearchCharacter({
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-
-    // Only scroll on first keystroke
-    if (value && !hasScrolledRef.current && autocompleteRef.current) {
-      scrollToBottom(autocompleteRef.current);
-      hasScrolledRef.current = true;
-    }
   };
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
 
-    // Reset scroll flag when popover closes
-    if (!open) {
-      hasScrolledRef.current = false;
+    if (open && autocompleteRef.current) {
+      scrollIfNeeded(autocompleteRef.current);
     }
   };
 
