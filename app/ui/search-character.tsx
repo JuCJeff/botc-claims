@@ -52,6 +52,7 @@ export default function SearchCharacter({
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const [isMobile, setIsMobile] = useState(false);
+  const isScrollingRef = useRef(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
@@ -62,33 +63,48 @@ export default function SearchCharacter({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-
   const scrollToBottom = useCallback((element: HTMLElement): Promise<void> => {
     return new Promise((resolve) => {
-      const bottomPadding = 100; // More padding to keep trigger visible above keyboard
+      // Prevent multiple simultaneous scrolls
+      if (isScrollingRef.current) {
+        resolve();
+        return;
+      }
+
+      const bottomPadding = 100;
       const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
       const elementRect = element.getBoundingClientRect();
 
       // Target: position trigger above the keyboard area
-      const targetY =
+      let targetY =
         elementRect.top +
         window.scrollY -
         visibleHeight +
         element.offsetHeight +
         bottomPadding;
 
+      // Clamp to valid scroll bounds
+      const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+      targetY = Math.max(0, Math.min(targetY, maxScroll));
+
       // Skip if already at target position
-      if (Math.abs(window.scrollY - targetY) < 1) {
+      if (Math.abs(window.scrollY - targetY) < 5) {
         resolve();
         return;
       }
+
+      isScrollingRef.current = true;
 
       animate(window.scrollY, targetY, {
         type: 'spring',
         stiffness: 300,
         damping: 30,
         onUpdate: (value: number) => window.scrollTo(0, value),
-        onComplete: () => resolve(),
+        onComplete: () => {
+          isScrollingRef.current = false;
+          resolve();
+        },
       });
     });
   }, []);
@@ -115,20 +131,6 @@ export default function SearchCharacter({
 
     setIsOpen(true);
   };
-
-  // On mobile: re-scroll when keyboard appears (visualViewport resizes)
-  useEffect(() => {
-    if (!isOpen || !isMobile) return;
-
-    const handleViewportResize = () => {
-      if (triggerRef.current) {
-        scrollToBottom(triggerRef.current);
-      }
-    };
-
-    window.visualViewport?.addEventListener('resize', handleViewportResize);
-    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize);
-  }, [isOpen, isMobile, scrollToBottom]);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
