@@ -45,6 +45,8 @@ export default function SearchCharacter({
 }: SearchCharacterType) {
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const cacheRef = useRef(characterCache);
 
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -128,7 +130,13 @@ export default function SearchCharacter({
         selectionMode='multiple'
         variant='secondary'
         value={selectedKeys}
-        onChange={(keys: Key | Key[] | null) => setSelectedKeys(keys as Key[])}
+        onChange={(keys: Key | Key[] | null) => {
+          setSelectedKeys(keys as Key[]);
+          setSearchValue('');
+          setIsOpen(false);
+        }}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
       >
         <Label>
           <h1 className='max-w-xs text-sm font-semibold leading-10 tracking-tight'>
@@ -187,6 +195,8 @@ export default function SearchCharacter({
               autoFocus
               name='search'
               aria-label='Search for a character'
+              value={searchValue}
+              onChange={setSearchValue}
             >
               <SearchField.Group>
                 <SearchField.SearchIcon aria-label='Search icon' />
@@ -198,6 +208,7 @@ export default function SearchCharacter({
               </SearchField.Group>
             </SearchField>
             <ListBox
+              className="min-h-42 max-h-64 overflow-y-auto"
               renderEmptyState={() => (
                 <EmptyState>No characters found</EmptyState>
               )}
