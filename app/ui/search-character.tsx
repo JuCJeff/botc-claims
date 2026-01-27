@@ -62,12 +62,13 @@ export default function SearchCharacter({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
+
   const scrollToBottom = useCallback((element: HTMLElement) => {
     const bottomPadding = 16;
     const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
     const elementRect = element.getBoundingClientRect();
 
-    // Target: position input at bottom of visible area (above keyboard)
+    // Target: position trigger at bottom of visible area (above keyboard)
     const targetY =
       elementRect.top +
       window.scrollY -
@@ -75,9 +76,13 @@ export default function SearchCharacter({
       element.offsetHeight +
       bottomPadding;
 
+    // Skip if already at target position
+    if (Math.abs(window.scrollY - targetY) < 1) return;
+
     animate(window.scrollY, targetY, {
-      duration: 0.2,
-      ease: 'easeOut',
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
       onUpdate: (value: number) => window.scrollTo(0, value),
     });
   }, []);
@@ -88,12 +93,21 @@ export default function SearchCharacter({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-
-    // On mobile: scroll to position trigger at bottom
-    if (open && isMobile && triggerRef.current) {
-      scrollToBottom(triggerRef.current);
-    }
   };
+
+  // On mobile: scroll when keyboard appears (visualViewport resizes)
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+
+    const handleViewportResize = () => {
+      if (triggerRef.current) {
+        scrollToBottom(triggerRef.current);
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize);
+  }, [isOpen, isMobile, scrollToBottom]);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
