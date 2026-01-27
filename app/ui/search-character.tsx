@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { animate } from 'motion/react';
 import {
   Autocomplete,
   EmptyState,
@@ -50,17 +51,34 @@ export default function SearchCharacter({
   const cacheRef = useRef(characterCache);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  // Scroll autocomplete into view when virtual keyboard resizes viewport
-  useEffect(() => {
-    if (!isOpen) return;
+  const scrollToBottom = async (element: HTMLElement) => {
+    // Use visualViewport height (excludes keyboard) or fall back to innerHeight
+    const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
+    const targetY =
+      element.getBoundingClientRect().top +
+      window.scrollY -
+      visibleHeight +
+      element.offsetHeight;
 
-    const scrollToAutocomplete = () => {
-      autocompleteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
+    await animate(window.scrollY, targetY, {
+      duration: 0.1,
+      ease: 'easeOut',
+      onUpdate: (value: number) => window.scrollTo(0, value),
+    });
+  };
 
-    window.visualViewport?.addEventListener('resize', scrollToAutocomplete);
-    return () => window.visualViewport?.removeEventListener('resize', scrollToAutocomplete);
-  }, [isOpen]);
+  const handleOpenChange = async (open: boolean) => {
+    if (!open) {
+      setIsOpen(false);
+      return;
+    }
+
+    if (autocompleteRef.current) {
+      await scrollToBottom(autocompleteRef.current);
+    }
+
+    setIsOpen(true);
+  };
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
@@ -149,7 +167,7 @@ export default function SearchCharacter({
           setIsOpen(false);
         }}
         isOpen={isOpen}
-        onOpenChange={setIsOpen}
+        onOpenChange={handleOpenChange}
         ref={autocompleteRef}
       >
         <Label>
@@ -222,7 +240,7 @@ export default function SearchCharacter({
               </SearchField.Group>
             </SearchField>
             <ListBox
-              className="min-h-42 max-h-64 overflow-y-auto"
+              className='min-h-42 max-h-64 overflow-y-auto'
               renderEmptyState={() => (
                 <EmptyState>No characters found</EmptyState>
               )}
