@@ -47,7 +47,18 @@ export default function SearchCharacter({
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const cacheRef = useRef(characterCache);
+
+  // Detect mobile devices to adjust popover placement
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
@@ -189,7 +200,10 @@ export default function SearchCharacter({
           </Autocomplete.Value>
           <Autocomplete.Indicator aria-label='Toggle dropdown' />
         </Autocomplete.Trigger>
-        <Autocomplete.Popover className='bg-background'>
+        <Autocomplete.Popover
+          className='bg-background'
+          {...(isMobile && { placement: 'top' })}
+        >
           <Autocomplete.Filter filter={contains}>
             <SearchField
               autoFocus
@@ -208,7 +222,7 @@ export default function SearchCharacter({
               </SearchField.Group>
             </SearchField>
             <ListBox
-              className="min-h-42 max-h-54 overflow-y-auto"
+              className="min-h-42 max-h-64 overflow-y-auto"
               renderEmptyState={() => (
                 <EmptyState>No characters found</EmptyState>
               )}
