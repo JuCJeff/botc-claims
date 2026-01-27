@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Autocomplete,
   EmptyState,
@@ -12,7 +12,7 @@ import {
   useFilter,
 } from '@heroui/react';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
-import { getCharactersByNames } from '@/lib/character-queries';
+import { getCharacterByName } from '@/lib/character-queries';
 import CharacterToken from './character-token';
 
 import type { Key } from '@heroui/react';
@@ -33,11 +33,19 @@ type AutocompleteValueProps = {
 
 type SearchCharacterType = {
   characters: AutoCompleteItem[];
+  onCharactersChange?: (characters: Character[]) => void;
 };
 
-export default function SearchCharacter({ characters }: SearchCharacterType) {
+// Cache individual characters by name
+const characterCache = new Map<string, Character>();
+
+export default function SearchCharacter({
+  characters,
+  onCharactersChange,
+}: SearchCharacterType) {
   const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
+  const cacheRef = useRef(characterCache);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
@@ -50,15 +58,53 @@ export default function SearchCharacter({ characters }: SearchCharacterType) {
     const fetchCharacters = async () => {
       if (selectedKeys.length === 0) {
         setSelectedCharacters([]);
+        onCharactersChange?.([]);
         return;
       }
 
       const names = selectedKeys.map((key) => String(key));
-      const fetchedCharacters = await getCharactersByNames(names);
-      setSelectedCharacters(fetchedCharacters);
+      const cachedChars: Character[] = [];
+      const missingNames: string[] = [];
+
+      // Check which characters are already cached
+      names.forEach((name) => {
+        const cached = cacheRef.current.get(name);
+        if (cached) {
+          cachedChars.push(cached);
+        } else {
+          missingNames.push(name);
+        }
+      });
+
+      // Fetch only missing characters individually
+      let allCharacters = [...cachedChars];
+      if (missingNames.length > 0) {
+        const fetchPromises = missingNames.map((name) =>
+          getCharacterByName(name),
+        );
+        const fetchedCharacters = await Promise.all(fetchPromises);
+
+        // Cache each fetched character individually
+        fetchedCharacters.forEach((char) => {
+          if (char) {
+            cacheRef.current.set(char.name, char);
+          }
+        });
+
+        allCharacters = [
+          ...cachedChars,
+          ...fetchedCharacters.filter(
+            (char): char is Character => char !== null,
+          ),
+        ];
+      }
+
+      setSelectedCharacters(allCharacters);
+      onCharactersChange?.(allCharacters);
     };
 
     fetchCharacters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKeys]);
 
   return (
@@ -89,7 +135,7 @@ export default function SearchCharacter({ characters }: SearchCharacterType) {
             Search for a character
           </h1>
         </Label>
-        <Autocomplete.Trigger>
+        <Autocomplete.Trigger className='bg-background'>
           <Autocomplete.Value>
             {({
               defaultChildren,
@@ -119,7 +165,7 @@ export default function SearchCharacter({ characters }: SearchCharacterType) {
                         <Tag
                           key={characterName.id}
                           id={characterName.id}
-                          className='p-1'
+                          className='py-1 px-2'
                           textValue={characterName.name}
                         >
                           <AnimatedShinyText>
@@ -135,7 +181,7 @@ export default function SearchCharacter({ characters }: SearchCharacterType) {
           </Autocomplete.Value>
           <Autocomplete.Indicator aria-label='Toggle dropdown' />
         </Autocomplete.Trigger>
-        <Autocomplete.Popover>
+        <Autocomplete.Popover className='bg-background'>
           <Autocomplete.Filter filter={contains}>
             <SearchField
               autoFocus

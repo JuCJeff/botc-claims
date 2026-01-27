@@ -14,4 +14,5 @@ export type Character = {
 export type Player = {
   id: string;
   name: string;
+  selectedCharacters?: Character[];
 };

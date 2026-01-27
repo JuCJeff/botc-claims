@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+
 import { Button, Form, Input, Label, Accordion, Modal } from '@heroui/react';
 import { TextAnimate } from '@/components/ui/text-animate';
 
 import SearchCharacter from './search-character';
 
-import type { AutoCompleteItem, Player } from '@/utils/types';
+import type { AutoCompleteItem, Player, Character } from '@/utils/types';
 
 type AddUserProps = {
   characters: AutoCompleteItem[];
@@ -37,6 +39,19 @@ const AddPlayer = ({ characters }: AddUserProps) => {
     );
   };
 
+  const handleCharactersChange = (
+    playerId: string,
+    characters: Character[],
+  ) => {
+    setPlayerList((prevPlayers) =>
+      prevPlayers.map((player) =>
+        player.id === playerId
+          ? { ...player, selectedCharacters: characters }
+          : player,
+      ),
+    );
+  };
+
   const handleClearPlayers = () => {
     setPlayerList([]);
   };
@@ -53,6 +68,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
         <Input
           id='name'
           className='w-64'
+          variant='secondary'
           placeholder='Enter a player name'
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -66,18 +82,43 @@ const AddPlayer = ({ characters }: AddUserProps) => {
 
       <div className='flex flex-col gap-2'>
         {playerList.map((player) => (
-          <Accordion key={player.id} variant='surface' className='w-sm'>
+          <Accordion
+            key={player.id}
+            variant='surface'
+            className='w-sm'
+          >
             <Accordion.Item>
               <Accordion.Heading>
-                <Accordion.Trigger>
-                  <p>{player.name}</p>
+                <Accordion.Trigger className='font-semibold'>
+                  <div className='flex items-center justify-center gap-4'>
+                    <p>{player.name}</p>
+                    <div className='flex gap-0'>
+                      {player.selectedCharacters &&
+                        player.selectedCharacters.length > 0 &&
+                        player.selectedCharacters.map((character) => (
+                          <Image
+                            key={character.name}
+                            src={character.icon_url}
+                            alt={character.name}
+                            width={591}
+                            height={591}
+                            className='rounded-full w-8 h-8'
+                          />
+                        ))}
+                    </div>
+                  </div>
                   <Accordion.Indicator />
                 </Accordion.Trigger>
               </Accordion.Heading>
 
               <Accordion.Panel>
                 <Accordion.Body>
-                  <SearchCharacter characters={characters} />
+                  <SearchCharacter
+                    characters={characters}
+                    onCharactersChange={(chars) =>
+                      handleCharactersChange(player.id, chars)
+                    }
+                  />
                 </Accordion.Body>
 
                 <Modal>
@@ -126,7 +167,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
 
       {playerList.length !== 0 && (
         <Modal>
-          <Button variant='outline' className='mt-4'>
+          <Button variant='outline' className='my-4'>
             Clear Players
           </Button>
           <Modal.Backdrop>
