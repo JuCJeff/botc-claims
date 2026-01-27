@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import Footer from './ui/footer';
 
 import type { Metadata } from 'next';
 
@@ -30,12 +31,13 @@ export default function RootLayout({
   return (
     <html lang='en' className={inter.variable}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <div className='flex justify-end mt-8 me-8'>
           <AnimatedThemeToggler />
         </div>
         {children}
+        <Footer />
       </body>
     </html>
   );
