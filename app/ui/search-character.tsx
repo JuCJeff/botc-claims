@@ -47,18 +47,20 @@ export default function SearchCharacter({
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const cacheRef = useRef(characterCache);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  // Detect mobile devices to adjust popover placement
+  // Scroll autocomplete into view when virtual keyboard resizes viewport
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    if (!isOpen) return;
+
+    const scrollToAutocomplete = () => {
+      autocompleteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+
+    window.visualViewport?.addEventListener('resize', scrollToAutocomplete);
+    return () => window.visualViewport?.removeEventListener('resize', scrollToAutocomplete);
+  }, [isOpen]);
 
   const { contains } = useFilter({ sensitivity: 'base' });
 
@@ -148,6 +150,7 @@ export default function SearchCharacter({
         }}
         isOpen={isOpen}
         onOpenChange={setIsOpen}
+        ref={autocompleteRef}
       >
         <Label>
           <h1 className='max-w-xs text-sm font-semibold leading-10 tracking-tight'>
@@ -200,10 +203,7 @@ export default function SearchCharacter({
           </Autocomplete.Value>
           <Autocomplete.Indicator aria-label='Toggle dropdown' />
         </Autocomplete.Trigger>
-        <Autocomplete.Popover
-          className='bg-background'
-          {...(isMobile && { placement: 'top' })}
-        >
+        <Autocomplete.Popover className='bg-background'>
           <Autocomplete.Filter filter={contains}>
             <SearchField
               autoFocus
