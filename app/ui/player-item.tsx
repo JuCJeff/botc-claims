@@ -39,13 +39,14 @@ const PlayerItem = ({
             <Accordion.Trigger className='font-semibold'>
               <div className='flex items-center justify-center gap-4'>
                 <div
-                  className='cursor-grab active:cursor-grabbing touch-none p-1'
+                  className='relative cursor-grab active:cursor-grabbing touch-none p-1'
                   onPointerDown={(e) => {
                     e.stopPropagation();
                     controls.start(e);
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <div className='absolute inset-0 -m-3' />
                   <ReorderIcon />
                 </div>
 
