@@ -314,7 +314,6 @@ export default function SearchCharacter({
           </Autocomplete.Filter>
         </Autocomplete.Popover>
       </Autocomplete>
-
     </div>
   );
 }
