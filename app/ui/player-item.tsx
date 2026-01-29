@@ -79,7 +79,7 @@ const PlayerItem = ({
                 }
               />
 
-              <TextArea className='w-xs mt-4 bg-background text-base font-light' placeholder='Notes' rows={3} />
+              <TextArea className='w-xs mt-4 bg-background text-base' placeholder='Notes' rows={3} />
             </Accordion.Body>
 
             <Modal>
