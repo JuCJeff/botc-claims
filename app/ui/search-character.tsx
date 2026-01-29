@@ -275,7 +275,8 @@ export default function SearchCharacter({
         </Autocomplete.Trigger>
         <Autocomplete.Popover
           className='bg-background'
-          {...(isMobile && { placement: 'top' })}
+          placement={isMobile ? 'top' : 'bottom'}
+          shouldFlip={!isMobile}
         >
           <Autocomplete.Filter filter={contains}>
             <SearchField
