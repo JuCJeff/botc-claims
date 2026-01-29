@@ -3,7 +3,7 @@
 import { memo } from 'react';
 import Image from 'next/image';
 import { Reorder, useDragControls } from 'motion/react';
-import { Button, Accordion, Modal } from '@heroui/react';
+import { Button, Accordion, Modal, TextArea } from '@heroui/react';
 
 import SearchCharacter from './search-character';
 import ReorderIcon from './reorder-icon';
@@ -78,6 +78,8 @@ const PlayerItem = ({
                   onCharactersChange(player.id, chars)
                 }
               />
+
+              <TextArea className='w-xs mt-4 bg-background text-base' placeholder='Notes' rows={3} />
             </Accordion.Body>
 
             <Modal>
