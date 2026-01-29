@@ -296,7 +296,7 @@ export default function SearchCharacter({
               </SearchField.Group>
             </SearchField>
             <ListBox
-              className='min-h-42 max-h-64 overflow-y-auto'
+              className='min-h-12 max-h-64 overflow-y-auto'
               renderEmptyState={() => (
                 <EmptyState>No characters found</EmptyState>
               )}
