@@ -49,7 +49,7 @@ const PlayerItem = ({
                   <ReorderIcon />
                 </div>
 
-                <p>{player.name}</p>
+                <p className='text-base'>{player.name}</p>
 
                 <div className='flex gap-0'>
                   {player.selectedCharacters &&
@@ -79,7 +79,7 @@ const PlayerItem = ({
                 }
               />
 
-              <TextArea className='w-xs mt-4 bg-background text-base' placeholder='Notes' rows={3} />
+              <TextArea className='w-xs mt-4 bg-background text-base font-light' placeholder='Notes' rows={3} />
             </Accordion.Body>
 
             <Modal>
