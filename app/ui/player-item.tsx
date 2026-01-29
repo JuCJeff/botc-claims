@@ -49,7 +49,7 @@ const PlayerItem = ({
                   <ReorderIcon />
                 </div>
 
-                <p className='text-base'>{player.name}</p>
+                <p className='text-base font-light'>{player.name}</p>
 
                 <div className='flex gap-0'>
                   {player.selectedCharacters &&
