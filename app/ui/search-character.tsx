@@ -222,11 +222,7 @@ export default function SearchCharacter({
         isOpen={isOpen}
         onOpenChange={handleOpenChange}
       >
-        <Label>
-          <h1 className='max-w-xs text-sm font-semibold leading-10 tracking-tight'>
-            Search for a character
-          </h1>
-        </Label>
+        <Label className='sr-only'>Search for a character</Label>
         <Autocomplete.Trigger ref={triggerRef} className='bg-background'>
           <Autocomplete.Value>
             {({
