@@ -17,6 +17,7 @@ type AddUserProps = {
 const AddPlayer = ({ characters }: AddUserProps) => {
   const [name, setName] = useState('');
   const [playerList, setPlayerList] = useState<Player[]>([]);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleAddName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,6 +57,13 @@ const AddPlayer = ({ characters }: AddUserProps) => {
     setPlayerList([]);
   };
 
+  const handleClearAllSelections = () => {
+    setPlayerList((prevPlayers) =>
+      prevPlayers.map((player) => ({ ...player, selectedCharacters: [] })),
+    );
+    setResetKey((prev) => prev + 1);
+  };
+
   return (
     <div className='flex flex-col items-center w-full'>
       <Form className='flex gap-2 items-center my-4' onSubmit={handleAddName}>
@@ -91,6 +99,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
             key={player.id}
             player={player}
             characters={characters}
+            resetKey={resetKey}
             onRemove={handleRemove}
             onCharactersChange={handleCharactersChange}
           />
@@ -98,37 +107,69 @@ const AddPlayer = ({ characters }: AddUserProps) => {
       </Reorder.Group>
 
       {playerList.length !== 0 && (
-        <Modal>
-          <Button variant='outline' className='my-4'>
-            Clear Players
-          </Button>
-          <Modal.Backdrop>
-            <Modal.Container>
-              <Modal.Dialog className='sm:max-w-90'>
-                <Modal.CloseTrigger />
-                <Modal.Header>
-                  <Modal.Heading>Clear All Players</Modal.Heading>
-                </Modal.Header>
-                <Modal.Body>
-                  <p>Are you sure you want to remove all players?</p>
-                </Modal.Body>
-                <Modal.Footer className='flex gap-2'>
-                  <Button variant='outline' slot='close' className='flex-1'>
-                    Cancel
-                  </Button>
-                  <Button
-                    variant='danger'
-                    slot='close'
-                    onClick={handleClearPlayers}
-                    className='flex-1'
-                  >
-                    Confirm
-                  </Button>
-                </Modal.Footer>
-              </Modal.Dialog>
-            </Modal.Container>
-          </Modal.Backdrop>
-        </Modal>
+        <div className='flex gap-2 my-4'>
+          <Modal>
+            <Button variant='outline'>Clear Selections</Button>
+            <Modal.Backdrop>
+              <Modal.Container>
+                <Modal.Dialog className='sm:max-w-90'>
+                  <Modal.CloseTrigger />
+                  <Modal.Header>
+                    <Modal.Heading>Clear All Selections</Modal.Heading>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <p>
+                      Are you sure you want to clear all character selections
+                      and notes?
+                    </p>
+                  </Modal.Body>
+                  <Modal.Footer className='flex gap-2'>
+                    <Button variant='outline' slot='close' className='flex-1'>
+                      Cancel
+                    </Button>
+                    <Button
+                      variant='danger'
+                      slot='close'
+                      onClick={handleClearAllSelections}
+                      className='flex-1'
+                    >
+                      Confirm
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Dialog>
+              </Modal.Container>
+            </Modal.Backdrop>
+          </Modal>
+          <Modal>
+            <Button variant='outline'>Clear Players</Button>
+            <Modal.Backdrop>
+              <Modal.Container>
+                <Modal.Dialog className='sm:max-w-90'>
+                  <Modal.CloseTrigger />
+                  <Modal.Header>
+                    <Modal.Heading>Clear All Players</Modal.Heading>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <p>Are you sure you want to remove all players?</p>
+                  </Modal.Body>
+                  <Modal.Footer className='flex gap-2'>
+                    <Button variant='outline' slot='close' className='flex-1'>
+                      Cancel
+                    </Button>
+                    <Button
+                      variant='danger'
+                      slot='close'
+                      onClick={handleClearPlayers}
+                      className='flex-1'
+                    >
+                      Confirm
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Dialog>
+              </Modal.Container>
+            </Modal.Backdrop>
+          </Modal>
+        </div>
       )}
     </div>
   );

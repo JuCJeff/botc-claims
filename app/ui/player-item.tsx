@@ -13,6 +13,7 @@ import type { AutoCompleteItem, Player, Character } from '@/utils/types';
 type PlayerItemProps = {
   player: Player;
   characters: AutoCompleteItem[];
+  resetKey: number;
   onRemove: (id: string) => void;
   onCharactersChange: (playerId: string, characters: Character[]) => void;
 };
@@ -20,6 +21,7 @@ type PlayerItemProps = {
 const PlayerItem = ({
   player,
   characters,
+  resetKey,
   onRemove,
   onCharactersChange,
 }: PlayerItemProps) => {
@@ -74,13 +76,19 @@ const PlayerItem = ({
           <Accordion.Panel>
             <Accordion.Body>
               <SearchCharacter
+                key={`search-${resetKey}`}
                 characters={characters}
                 onCharactersChange={(chars) =>
                   onCharactersChange(player.id, chars)
                 }
               />
 
-              <TextArea className='w-xs mt-4 bg-background text-base' placeholder='Notes' rows={3} />
+              <TextArea
+                key={`notes-${resetKey}`}
+                className='w-xs mt-4 bg-background text-base'
+                placeholder='Notes'
+                rows={3}
+              />
             </Accordion.Body>
 
             <Modal>
