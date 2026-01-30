@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
@@ -42,6 +43,7 @@ export default function RootLayout({
         {children}
         <Footer />
 
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
