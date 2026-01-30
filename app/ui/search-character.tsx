@@ -253,10 +253,10 @@ export default function SearchCharacter({
                         <Tag
                           key={characterName.id}
                           id={characterName.id}
-                          className='py-1 px-2'
+                          className='px-2'
                           textValue={characterName.name}
                         >
-                          <AnimatedShinyText>
+                          <AnimatedShinyText className='text-base px-1'>
                             {characterName.name}
                           </AnimatedShinyText>
                         </Tag>
