@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { Spinner } from '@heroui/react';
+
 import Header from './ui/header';
 import AddPlayerWrapper from './ui/add-player-wrapper';
 
