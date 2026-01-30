@@ -1,4 +1,6 @@
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
 import Footer from './ui/footer';
 
@@ -20,7 +22,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'BOTC tracker',
-  description: 'A fan made app to track claims from players for the game Blood on the Clocktower',
+  description:
+    'A fan made app to track claims from players for the game Blood on the Clocktower',
 };
 
 export default function RootLayout({
@@ -38,6 +41,8 @@ export default function RootLayout({
         </div>
         {children}
         <Footer />
+        
+        <SpeedInsights />
       </body>
     </html>
   );
