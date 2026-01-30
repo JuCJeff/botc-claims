@@ -256,7 +256,7 @@ export default function SearchCharacter({
                           className='px-2'
                           textValue={characterName.name}
                         >
-                          <AnimatedShinyText className='text-base px-1'>
+                          <AnimatedShinyText className='text-sm px-1'>
                             {characterName.name}
                           </AnimatedShinyText>
                         </Tag>
