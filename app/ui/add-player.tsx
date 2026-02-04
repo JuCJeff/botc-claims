@@ -76,7 +76,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
         <Input
           id='name'
           className='w-64'
-          variant='secondary'
+          variant='primary'
           placeholder='Enter a player name'
           value={name}
           onChange={(e) => setName(e.target.value)}
