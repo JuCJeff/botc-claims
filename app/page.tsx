@@ -10,7 +10,7 @@ export default function Page() {
       <main className='flex w-full max-w-3xl flex-col items-center'>
         <div className='mt-8 flex flex-col items-center text-center'>
           <Header />
-          <Suspense fallback={<Spinner color='current' className='my-4'/>}>
+          <Suspense fallback={<Spinner className='my-4 text-primary'/>}>
             <AddPlayerWrapper />
           </Suspense>
         </div>
