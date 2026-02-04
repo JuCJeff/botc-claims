@@ -34,6 +34,7 @@ type AutocompleteValueProps = {
 
 type SearchCharacterType = {
   characters: AutoCompleteItem[];
+  initialCharacters?: Character[];
   onCharactersChange?: (characters: Character[]) => void;
 };
 
@@ -42,10 +43,19 @@ const characterCache = new Map<string, Character>();
 
 export default function SearchCharacter({
   characters,
+  initialCharacters = [],
   onCharactersChange,
 }: SearchCharacterType) {
-  const [selectedKeys, setSelectedKeys] = useState<Key[]>([]);
-  const [selectedCharacters, setSelectedCharacters] = useState<Character[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<Key[]>(
+    () => initialCharacters.map((c) => c.name),
+  );
+  const [selectedCharacters, setSelectedCharacters] = useState<Character[]>(
+    () => {
+      // Pre-populate cache with initial characters
+      initialCharacters.forEach((c) => characterCache.set(c.name, c));
+      return initialCharacters;
+    },
+  );
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const cacheRef = useRef(characterCache);
@@ -209,7 +219,7 @@ export default function SearchCharacter({
       )}
 
       <Autocomplete
-        className='w-xs'
+        className='w-xs mt-2'
         placeholder='Select characters'
         selectionMode='multiple'
         variant='secondary'

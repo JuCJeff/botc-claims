@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Reorder } from 'motion/react';
+import { useLocalStorage } from 'usehooks-ts';
 
+import { Reorder } from 'motion/react';
 import { Button, Form, Input, Label, Modal } from '@heroui/react';
 import { TextAnimate } from '@/components/ui/text-animate';
 
@@ -16,7 +17,11 @@ type AddUserProps = {
 
 const AddPlayer = ({ characters }: AddUserProps) => {
   const [name, setName] = useState('');
-  const [playerList, setPlayerList] = useState<Player[]>([]);
+  const [playerList, setPlayerList] = useLocalStorage<Player[]>(
+    'playerList',
+    [],
+    { initializeWithValue: false },
+  );
   const [resetKey, setResetKey] = useState(0);
 
   const handleAddName = (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,11 +39,14 @@ const AddPlayer = ({ characters }: AddUserProps) => {
     setName('');
   };
 
-  const handleRemove = useCallback((id: string) => {
-    setPlayerList((prevNames) =>
-      prevNames.filter((player) => player.id !== id),
-    );
-  }, []);
+  const handleRemove = useCallback(
+    (id: string) => {
+      setPlayerList((prevNames) =>
+        prevNames.filter((player) => player.id !== id),
+      );
+    },
+    [setPlayerList],
+  );
 
   const handleCharactersChange = useCallback(
     (playerId: string, characters: Character[]) => {
@@ -50,7 +58,18 @@ const AddPlayer = ({ characters }: AddUserProps) => {
         ),
       );
     },
-    [],
+    [setPlayerList],
+  );
+
+  const handleNotesChange = useCallback(
+    (playerId: string, notes: string) => {
+      setPlayerList((prevPlayers) =>
+        prevPlayers.map((player) =>
+          player.id === playerId ? { ...player, notes } : player,
+        ),
+      );
+    },
+    [setPlayerList],
   );
 
   const handleClearPlayers = () => {
@@ -59,7 +78,11 @@ const AddPlayer = ({ characters }: AddUserProps) => {
 
   const handleClearAllSelections = () => {
     setPlayerList((prevPlayers) =>
-      prevPlayers.map((player) => ({ ...player, selectedCharacters: [] })),
+      prevPlayers.map((player) => ({
+        ...player,
+        selectedCharacters: [],
+        notes: '',
+      })),
     );
     setResetKey((prev) => prev + 1);
   };
@@ -102,6 +125,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
             resetKey={resetKey}
             onRemove={handleRemove}
             onCharactersChange={handleCharactersChange}
+            onNotesChange={handleNotesChange}
           />
         ))}
       </Reorder.Group>

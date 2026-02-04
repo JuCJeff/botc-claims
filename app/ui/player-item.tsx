@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import Image from 'next/image';
 import { Reorder, useDragControls } from 'motion/react';
 import { Button, Accordion, Modal, TextArea } from '@heroui/react';
@@ -16,6 +16,7 @@ type PlayerItemProps = {
   resetKey: number;
   onRemove: (id: string) => void;
   onCharactersChange: (playerId: string, characters: Character[]) => void;
+  onNotesChange: (playerId: string, notes: string) => void;
 };
 
 const PlayerItem = ({
@@ -24,8 +25,17 @@ const PlayerItem = ({
   resetKey,
   onRemove,
   onCharactersChange,
+  onNotesChange,
 }: PlayerItemProps) => {
   const controls = useDragControls();
+  const [localNotes, setLocalNotes] = useState(player.notes ?? '');
+  const [prevNotes, setPrevNotes] = useState(player.notes);
+
+  // Sync local state when parent changes notes (e.g., clearing)
+  if (player.notes !== prevNotes) {
+    setPrevNotes(player.notes);
+    setLocalNotes(player.notes ?? '');
+  }
 
   return (
     <Reorder.Item
@@ -78,6 +88,7 @@ const PlayerItem = ({
               <SearchCharacter
                 key={`search-${resetKey}`}
                 characters={characters}
+                initialCharacters={player.selectedCharacters}
                 onCharactersChange={(chars) =>
                   onCharactersChange(player.id, chars)
                 }
@@ -88,6 +99,9 @@ const PlayerItem = ({
                 className='w-xs mt-4 bg-background text-base'
                 placeholder='Notes'
                 rows={3}
+                value={localNotes}
+                onChange={(e) => setLocalNotes(e.target.value)}
+                onBlur={() => onNotesChange(player.id, localNotes)}
               />
             </Accordion.Body>
 
