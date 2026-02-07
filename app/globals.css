@@ -43,19 +43,33 @@
       transform: rotate(-5deg) scale(0.9);
     }
   }
-  
+
   --animate-shiny-text: shiny-text 8s infinite;
   @keyframes shiny-text {
-    0%, 90%, 100% {
+    0%,
+    90%,
+    100% {
       background-position: calc(-100% - var(--shiny-width, 100px)) 0;
     }
-    30%, 60% {
+    30%,
+    60% {
       background-position: calc(100% + var(--shiny-width, 100px)) 0;
     }
   }
 }
 
 @layer base {
+  :root:not(.dark) {
+    --background-primary-light: hsl(40 49% 89%);
+    --background-secondary-light: hsl(43 38% 85%);
+    --background: var(--background-primary-light);
+    --surface: var(--background-secondary-light);
+    --field-background: var(--background-secondary-light);
+    --overlay: var(--background-secondary-light);
+    --border: hsl(43, 38%, 79%);
+    --default: hsl(43 29% 79%);
+  }
+
   :root {
     --color-primary-base: hsl(253 23% 49%);
     --color-ring-base: hsl(222.2 84% 4.9%);
