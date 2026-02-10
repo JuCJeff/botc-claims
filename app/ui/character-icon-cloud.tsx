@@ -7,7 +7,7 @@ import { Button } from '@heroui/react';
 import { IconCloud } from '@/components/ui/icon-cloud';
 
 const CharacterIconCloud = ({ images }: { images: string[] }) => {
-  const [showCloud, setShowCloud] = useLocalStorage('showIconCloud', true, {
+  const [showCloud, setShowCloud] = useLocalStorage('showIconCloud', false, {
     initializeWithValue: false,
   });
   const isClient = useIsClient();
@@ -18,7 +18,7 @@ const CharacterIconCloud = ({ images }: { images: string[] }) => {
     <>
       <Button
         variant='ghost'
-        className='text-xs'
+        className='text-xs text-muted'
         onClick={() => setShowCloud((prev) => !prev)}
       >
         {showCloud ? 'Hide' : 'Show'} Icon Cloud
