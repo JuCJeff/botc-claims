@@ -3,7 +3,7 @@ import { Spinner } from '@heroui/react';
 
 import Header from './ui/header';
 import Disclaimer from './ui/disclaimer';
-import AddPlayerWrapper from './ui/add-player-wrapper';
+import GameSetupContainer from './containers/game-setup-container';
 
 export default function Page() {
   return (
@@ -13,7 +13,7 @@ export default function Page() {
           <Header />
           <Disclaimer />
           <Suspense fallback={<Spinner className='my-4 text-primary' />}>
-            <AddPlayerWrapper />
+            <GameSetupContainer />
           </Suspense>
         </div>
       </main>
