@@ -42,6 +42,10 @@ const PlayerItem = ({
       value={player}
       id={player.id}
       layout
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      style={{ originY: 0 }}
       dragListener={false}
       dragControls={controls}
     >
