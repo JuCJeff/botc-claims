@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { renderToString } from "react-dom/server"
 
 interface Icon {
@@ -23,11 +23,16 @@ function easeOutCubic(t: number): number {
 }
 
 const CANVAS_SIZE = 350
+const FRICTION = 0.96
+const MIN_VELOCITY = 0.00005
+const AUTO_SPIN_SPEED = 0.002
+const DRAG_SENSITIVITY = 0.004
 
 export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
   const halfSize = iconSize / 2
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dprRef = useRef(1)
+
   const iconPositions = useMemo(() => {
     const items = icons || images || []
     const numIcons = items.length || 20
@@ -55,11 +60,15 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
     }
     return newIcons
   }, [icons, images])
-  const [rotation, setRotation] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 })
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [targetRotation, setTargetRotation] = useState<{
+
+  // All interaction state as refs for a stable animation loop
+  const rotationRef = useRef({ x: 0, y: 0 })
+  const isDraggingRef = useRef(false)
+  const lastPointerRef = useRef({ x: 0, y: 0, time: 0 })
+  const velocityRef = useRef({ x: 0, y: 0 })
+  const mousePosRef = useRef({ x: 0, y: 0 })
+  const hasMouseRef = useRef(false)
+  const targetRotationRef = useRef<{
     x: number
     y: number
     startX: number
@@ -69,7 +78,6 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
     duration: number
   } | null>(null)
   const animationFrameRef = useRef<number>(0)
-  const rotationRef = useRef(rotation)
   const iconCanvasesRef = useRef<HTMLCanvasElement[]>([])
   const imagesLoadedRef = useRef<boolean[]>([])
 
@@ -141,19 +149,8 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
     iconCanvasesRef.current = newIconCanvases
   }, [icons, images, iconSize, halfSize])
 
-
-
-  // Handle mouse events
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect || !canvasRef.current) return
-
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    const ctx = canvasRef.current.getContext("2d")
-    if (!ctx) return
-
+  // Check if an icon was tapped/clicked and animate to it
+  const tryIconClick = useCallback((canvasX: number, canvasY: number) => {
     iconPositions.forEach((icon) => {
       const cosX = Math.cos(rotationRef.current.x)
       const sinX = Math.sin(rotationRef.current.x)
@@ -169,8 +166,8 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
 
       const scale = (rotatedZ + 200) / 300
       const radius = halfSize * scale
-      const dx = x - screenX
-      const dy = y - screenY
+      const dx = canvasX - screenX
+      const dy = canvasY - screenY
 
       if (dx * dx + dy * dy < radius * radius) {
         const targetX = -Math.atan2(
@@ -187,7 +184,7 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
 
         const duration = Math.min(2000, Math.max(800, distance * 1000))
 
-        setTargetRotation({
+        targetRotationRef.current = {
           x: targetX,
           y: targetY,
           startX: currentX,
@@ -195,39 +192,82 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
           distance,
           startTime: performance.now(),
           duration,
-        })
-        return
+        }
       }
     })
+  }, [iconPositions, halfSize])
 
-    setIsDragging(true)
-    setLastMousePos({ x: e.clientX, y: e.clientY })
-  }
+  // Unified pointer handlers
+  const handlePointerStart = useCallback((clientX: number, clientY: number) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvasX = clientX - rect.left
+    const canvasY = clientY - rect.top
+
+    tryIconClick(canvasX, canvasY)
+
+    isDraggingRef.current = true
+    velocityRef.current = { x: 0, y: 0 }
+    lastPointerRef.current = { x: clientX, y: clientY, time: performance.now() }
+  }, [tryIconClick])
+
+  const handlePointerMove = useCallback((clientX: number, clientY: number) => {
+    if (!isDraggingRef.current) return
+
+    const now = performance.now()
+    const dt = now - lastPointerRef.current.time
+    const deltaX = clientX - lastPointerRef.current.x
+    const deltaY = clientY - lastPointerRef.current.y
+
+    rotationRef.current = {
+      x: rotationRef.current.x + deltaY * DRAG_SENSITIVITY,
+      y: rotationRef.current.y + deltaX * DRAG_SENSITIVITY,
+    }
+
+    // Track velocity (normalize to per-frame ~16ms)
+    if (dt > 0) {
+      velocityRef.current = {
+        x: (deltaY * DRAG_SENSITIVITY) / dt * 16,
+        y: (deltaX * DRAG_SENSITIVITY) / dt * 16,
+      }
+    }
+
+    lastPointerRef.current = { x: clientX, y: clientY, time: now }
+  }, [])
+
+  const handlePointerEnd = useCallback(() => {
+    isDraggingRef.current = false
+  }, [])
+
+  // Mouse events
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    hasMouseRef.current = true
+    handlePointerStart(e.clientX, e.clientY)
+  }, [handlePointerStart])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    hasMouseRef.current = true
     const rect = canvasRef.current?.getBoundingClientRect()
     if (rect) {
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      setMousePos({ x, y })
-    }
-
-    if (isDragging) {
-      const deltaX = e.clientX - lastMousePos.x
-      const deltaY = e.clientY - lastMousePos.y
-
-      rotationRef.current = {
-        x: rotationRef.current.x + deltaY * 0.002,
-        y: rotationRef.current.y + deltaX * 0.002,
+      mousePosRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
       }
-
-      setLastMousePos({ x: e.clientX, y: e.clientY })
     }
-  }
+    handlePointerMove(e.clientX, e.clientY)
+  }, [handlePointerMove])
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
+  // Touch events
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    const touch = e.touches[0]
+    handlePointerStart(touch.clientX, touch.clientY)
+  }, [handlePointerStart])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    const touch = e.touches[0]
+    handlePointerMove(touch.clientX, touch.clientY)
+  }, [handlePointerMove])
 
   // Animation and rendering
   useEffect(() => {
@@ -239,35 +279,55 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
       ctx.setTransform(dprRef.current, 0, 0, dprRef.current, 0, 0)
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
-      const centerX = CANVAS_SIZE / 2
-      const centerY = CANVAS_SIZE / 2
-      const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY)
-      const dx = mousePos.x - centerX
-      const dy = mousePos.y - centerY
-      const distance = Math.sqrt(dx * dx + dy * dy)
-      const speed = 0.003 + (distance / maxDistance) * 0.01
-
-      if (targetRotation) {
-        const elapsed = performance.now() - targetRotation.startTime
-        const progress = Math.min(1, elapsed / targetRotation.duration)
+      if (targetRotationRef.current) {
+        // Animated rotation to a clicked icon
+        const target = targetRotationRef.current
+        const elapsed = performance.now() - target.startTime
+        const progress = Math.min(1, elapsed / target.duration)
         const easedProgress = easeOutCubic(progress)
 
         rotationRef.current = {
-          x:
-            targetRotation.startX +
-            (targetRotation.x - targetRotation.startX) * easedProgress,
-          y:
-            targetRotation.startY +
-            (targetRotation.y - targetRotation.startY) * easedProgress,
+          x: target.startX + (target.x - target.startX) * easedProgress,
+          y: target.startY + (target.y - target.startY) * easedProgress,
         }
 
         if (progress >= 1) {
-          setTargetRotation(null)
+          targetRotationRef.current = null
         }
-      } else if (!isDragging) {
+      } else if (isDraggingRef.current) {
+        // Rotation handled in pointer move handlers
+      } else if (
+        Math.abs(velocityRef.current.x) > MIN_VELOCITY ||
+        Math.abs(velocityRef.current.y) > MIN_VELOCITY
+      ) {
+        // Momentum: apply velocity and decay with friction
+        rotationRef.current = {
+          x: rotationRef.current.x + velocityRef.current.x,
+          y: rotationRef.current.y + velocityRef.current.y,
+        }
+        velocityRef.current = {
+          x: velocityRef.current.x * FRICTION,
+          y: velocityRef.current.y * FRICTION,
+        }
+      } else if (hasMouseRef.current) {
+        // Desktop: mouse-position-driven auto-rotation
+        const centerX = CANVAS_SIZE / 2
+        const centerY = CANVAS_SIZE / 2
+        const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY)
+        const dx = mousePosRef.current.x - centerX
+        const dy = mousePosRef.current.y - centerY
+        const distance = Math.sqrt(dx * dx + dy * dy)
+        const speed = 0.003 + (distance / maxDistance) * 0.01
+
         rotationRef.current = {
           x: rotationRef.current.x + (dy / CANVAS_SIZE) * speed,
           y: rotationRef.current.y + (dx / CANVAS_SIZE) * speed,
+        }
+      } else {
+        // Touch/no-mouse: gentle auto-spin
+        rotationRef.current = {
+          y: rotationRef.current.y + AUTO_SPIN_SPEED,
+          x: rotationRef.current.x,
         }
       }
 
@@ -322,7 +382,7 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [icons, images, iconPositions, isDragging, mousePos, targetRotation, iconSize, halfSize])
+  }, [icons, images, iconPositions, iconSize, halfSize])
 
   return (
     <canvas
@@ -331,9 +391,13 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
       height={CANVAS_SIZE}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      className="rounded-lg"
+      onMouseUp={handlePointerEnd}
+      onMouseLeave={handlePointerEnd}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handlePointerEnd}
+      onTouchCancel={handlePointerEnd}
+      className="rounded-lg touch-none"
       aria-label="Interactive 3D Icon Cloud"
       role="img"
     />
