@@ -44,3 +44,18 @@ export async function getCharactersByNames(names: string[]) {
 
   return characters;
 }
+
+export async function getCharactersByBaseEdition(name: string) {
+  const supabase = await createClient();
+
+  const { data: characters, error } = await supabase
+    .from('characters')
+    .select()
+    .eq('base_edition', name);
+
+    if (error) {
+      throw error;
+    }
+
+    return characters;
+}
