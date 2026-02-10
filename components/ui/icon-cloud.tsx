@@ -222,14 +222,14 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
 
     rotationRef.current = {
       x: rotationRef.current.x + deltaY * DRAG_SENSITIVITY,
-      y: rotationRef.current.y + deltaX * DRAG_SENSITIVITY,
+      y: rotationRef.current.y - deltaX * DRAG_SENSITIVITY,
     }
 
     // Track velocity (normalize to per-frame ~16ms)
     if (dt > 0) {
       velocityRef.current = {
         x: (deltaY * DRAG_SENSITIVITY) / dt * 16,
-        y: (deltaX * DRAG_SENSITIVITY) / dt * 16,
+        y: (-deltaX * DRAG_SENSITIVITY) / dt * 16,
       }
     }
 
