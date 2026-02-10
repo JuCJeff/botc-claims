@@ -8,7 +8,7 @@ const Disclaimer = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className='w-full max-w-md px-4'>
+    <div className='w-full max-w-md px-4 my-2'>
       <Disclosure isExpanded={isExpanded} onExpandedChange={setIsExpanded}>
         <Disclosure.Heading>
           <Button
