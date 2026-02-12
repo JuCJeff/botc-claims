@@ -29,8 +29,8 @@ export default function GameSetup({
   const { filteredCharacters, shuffledIconImages } = useEditionFilter({
     selectedEditions,
     allCharacters,
-    editionImages,
     editionCharacterNames,
+    editionImages,
   });
 
   return (

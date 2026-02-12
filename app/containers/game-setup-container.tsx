@@ -12,7 +12,9 @@ const editionNames = BASE_EDITIONS.map((edition) => edition.name);
 export default async function GameSetupContainer() {
   const [characterNames, ...editionCharacters] = await Promise.all([
     getCharacterNames(),
-    ...editionNames.map((edition) => getCharactersByBaseEdition(edition)),
+    ...BASE_EDITIONS.map((edition) =>
+      getCharactersByBaseEdition(edition.queryValue),
+    ),
   ]);
 
   const allCharacters = characterNamesToAutoCompleteItems(
@@ -22,18 +24,21 @@ export default async function GameSetupContainer() {
   const editionImages: Record<string, string[]> = {};
   const editionCharacterNames: Record<string, string[]> = {};
 
-  editionNames.forEach((edition, i) => {
-    editionImages[edition] = editionCharacters[i].map((c) => c.icon_url);
-    editionCharacterNames[edition] = [...editionCharacters[i]]
+  editionNames.forEach((edition, index) => {
+    editionCharacterNames[edition] = [...editionCharacters[index]]
       .sort((a, b) => a.id - b.id)
-      .map((c) => c.name);
+      .map((character) => character.name);
+
+    editionImages[edition] = editionCharacters[index].map(
+      (character) => character.icon_url,
+    );
   });
 
   return (
     <GameSetup
       allCharacters={allCharacters}
-      editionImages={editionImages}
       editionCharacterNames={editionCharacterNames}
+      editionImages={editionImages}
     />
   );
 }

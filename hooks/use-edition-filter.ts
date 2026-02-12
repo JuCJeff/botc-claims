@@ -7,15 +7,15 @@ import type { AutoCompleteItem } from '@/utils/types';
 interface UseEditionFilterProps {
   selectedEditions: string[];
   allCharacters: AutoCompleteItem[];
-  editionImages: Record<string, string[]>;
   editionCharacterNames: Record<string, string[]>;
+  editionImages: Record<string, string[]>;
 }
 
 export function useEditionFilter({
   selectedEditions,
   allCharacters,
-  editionImages,
   editionCharacterNames,
+  editionImages,
 }: UseEditionFilterProps) {
   const filteredCharacters = useMemo(() => {
     if (selectedEditions.length === 0) return allCharacters;

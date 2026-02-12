@@ -45,17 +45,18 @@ export async function getCharactersByNames(names: string[]) {
   return characters;
 }
 
-export async function getCharactersByBaseEdition(name: string) {
+export async function getCharactersByBaseEdition(name: string | null) {
   const supabase = await createClient();
 
-  const { data: characters, error } = await supabase
-    .from('characters')
-    .select()
-    .eq('base_edition', name);
+  let query = supabase.from('characters').select();
+  // Handle carousel edition characters, where the base_edition field is null
+  query = name === null ? query.is('base_edition', null) : query.eq('base_edition', name);
 
-    if (error) {
-      throw error;
-    }
+  const { data: characters, error } = await query;
 
-    return characters;
+  if (error) {
+    throw error;
+  }
+
+  return characters;
 }
