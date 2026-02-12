@@ -3,7 +3,7 @@ import {
   getCharactersByBaseEdition,
 } from '@/lib/character-queries';
 import { characterNamesToAutoCompleteItems } from '@/utils/formatters';
-import GameSetup from '@/app/ui/game-setup';
+import GameSetup from '@/app/ui/game/game-setup';
 
 import { BASE_EDITIONS } from '@/lib/constants';
 

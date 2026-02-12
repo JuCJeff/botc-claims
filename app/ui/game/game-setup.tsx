@@ -4,8 +4,8 @@ import { useLocalStorage } from 'usehooks-ts';
 import { useEditionFilter } from '@/hooks/use-edition-filter';
 
 import SelectEdition from './select-edition';
-import AddPlayer from './add-player';
-import CharacterIconCloud from './character-icon-cloud';
+import AddPlayer from '../players/add-player';
+import CharacterIconCloud from '../characters/character-icon-cloud';
 
 import type { AutoCompleteItem } from '@/utils/types';
 

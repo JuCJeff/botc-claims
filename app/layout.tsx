@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
-import Footer from './ui/footer';
+import Footer from './ui/layouts/footer';
 
 import type { Metadata } from 'next';
 

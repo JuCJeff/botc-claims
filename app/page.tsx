@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { Spinner } from '@heroui/react';
 
-import Header from './ui/header';
+import Header from './ui/layouts/header';
 import Disclaimer from './ui/disclaimer';
 import GameSetupContainer from './containers/game-setup-container';
 

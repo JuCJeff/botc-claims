@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Reorder, useDragControls } from 'motion/react';
 import { Button, Accordion, Modal, TextArea } from '@heroui/react';
 
-import SearchCharacter from './search-character';
+import SearchCharacter from '../characters/search-character';
 import ReorderIcon from './reorder-icon';
 
 import type { AutoCompleteItem, Player, Character } from '@/utils/types';
