@@ -6,11 +6,11 @@ import { motion } from 'motion/react';
 
 import type { Character } from '@/utils/types';
 
-interface CharacterDetailsType {
+type CharacterTokenProp = {
   character: Character;
-}
+};
 
-const CharacterToken = ({ character }: CharacterDetailsType) => {
+const CharacterToken = ({ character }: CharacterTokenProp) => {
   const { name, icon_url } = character;
 
   return (

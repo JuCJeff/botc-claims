@@ -4,12 +4,12 @@ import { characterNamesToAutoCompleteItems } from '@/utils/formatters';
 
 import type { AutoCompleteItem } from '@/utils/types';
 
-interface UseEditionFilterProps {
+type UseEditionFilterProps = {
   selectedEditions: string[];
   allCharacters: AutoCompleteItem[];
   editionCharacterNames: Record<string, string[]>;
   editionImages: Record<string, string[]>;
-}
+};
 
 export function useEditionFilter({
   selectedEditions,

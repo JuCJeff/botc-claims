@@ -10,10 +10,10 @@ import {
 } from '@heroui/react';
 import { BASE_EDITIONS } from '@/lib/constants';
 
-interface SelectEditionProps {
+type SelectEditionProps = {
   selectedEditions: string[];
   onSelectedEditionsChange: (editions: string[]) => void;
-}
+};
 
 export default function SelectEdition({
   selectedEditions,

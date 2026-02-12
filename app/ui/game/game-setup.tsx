@@ -9,7 +9,7 @@ import CharacterIconCloud from '../characters/character-icon-cloud';
 
 import type { AutoCompleteItem } from '@/utils/types';
 
-interface GameSetupProps {
+type GameSetupProps = {
   allCharacters: AutoCompleteItem[];
   editionImages: Record<string, string[]>;
   editionCharacterNames: Record<string, string[]>;
