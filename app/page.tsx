@@ -9,7 +9,7 @@ export default function Page() {
   return (
     <div className='flex items-center justify-center font-sans'>
       <main className='flex w-full max-w-3xl flex-col items-center'>
-        <div className='mt-8 flex flex-col items-center text-center'>
+        <div className='mt-4 flex flex-col items-center text-center'>
           <Header />
           <Disclaimer />
           <Suspense fallback={<Spinner className='my-4 text-primary' />}>
