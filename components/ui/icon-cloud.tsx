@@ -7,8 +7,6 @@ interface Icon {
   x: number
   y: number
   z: number
-  scale: number
-  opacity: number
   id: number
 }
 
@@ -18,21 +16,59 @@ interface IconCloudProps {
   iconSize?: number
 }
 
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3)
+// 3x3 rotation matrix helpers (stored as flat 9-element array, row-major)
+type Mat3 = number[]
+
+function identityMat3(): Mat3 {
+  return [1, 0, 0, 0, 1, 0, 0, 0, 1]
 }
 
+function multiplyMat3(a: Mat3, b: Mat3): Mat3 {
+  return [
+    a[0]*b[0] + a[1]*b[3] + a[2]*b[6],
+    a[0]*b[1] + a[1]*b[4] + a[2]*b[7],
+    a[0]*b[2] + a[1]*b[5] + a[2]*b[8],
+    a[3]*b[0] + a[4]*b[3] + a[5]*b[6],
+    a[3]*b[1] + a[4]*b[4] + a[5]*b[7],
+    a[3]*b[2] + a[4]*b[5] + a[5]*b[8],
+    a[6]*b[0] + a[7]*b[3] + a[8]*b[6],
+    a[6]*b[1] + a[7]*b[4] + a[8]*b[7],
+    a[6]*b[2] + a[7]*b[5] + a[8]*b[8],
+  ]
+}
+
+function rotateAroundX(angle: number): Mat3 {
+  const c = Math.cos(angle), s = Math.sin(angle)
+  return [1, 0, 0, 0, c, -s, 0, s, c]
+}
+
+function rotateAroundY(angle: number): Mat3 {
+  const c = Math.cos(angle), s = Math.sin(angle)
+  return [c, 0, s, 0, 1, 0, -s, 0, c]
+}
+
+function applyMat3(m: Mat3, x: number, y: number, z: number): [number, number, number] {
+  return [
+    m[0]*x + m[1]*y + m[2]*z,
+    m[3]*x + m[4]*y + m[5]*z,
+    m[6]*x + m[7]*y + m[8]*z,
+  ]
+}
+
+// Physics & interaction tuning
 const CANVAS_SIZE = 350
-const FRICTION = 0.96
-const MIN_VELOCITY = 0.00005
-const AUTO_SPIN_SPEED = 0.002
-const DRAG_SENSITIVITY = 0.004
+const FRICTION = 0.96           // velocity decay per frame after releasing drag
+const MIN_VELOCITY = 0.00005    // threshold below which momentum stops
+const AUTO_SPIN_SPEED = 0.002   // gentle Y-axis rotation when idle
+const DRAG_SENSITIVITY = 0.004  // pointer movement to rotation scaling
+const DRAG_THRESHOLD = 5        // min px movement to distinguish drag from tap
 
 export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
   const halfSize = iconSize / 2
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dprRef = useRef(1)
 
+  // Distribute icons evenly on a sphere using Fibonacci sphere algorithm
   const iconPositions = useMemo(() => {
     const items = icons || images || []
     const numIcons = items.length || 20
@@ -53,30 +89,16 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
         x: x * 100,
         y: y * 100,
         z: z * 100,
-        scale: 1,
-        opacity: 1,
         id: i,
       })
     }
     return newIcons
   }, [icons, images])
 
-  // All interaction state as refs for a stable animation loop
-  const rotationRef = useRef({ x: 0, y: 0 })
+  const rotationMatRef = useRef<Mat3>(identityMat3())
   const isDraggingRef = useRef(false)
   const lastPointerRef = useRef({ x: 0, y: 0, time: 0 })
   const velocityRef = useRef({ x: 0, y: 0 })
-  const mousePosRef = useRef({ x: 0, y: 0 })
-  const hasMouseRef = useRef(false)
-  const targetRotationRef = useRef<{
-    x: number
-    y: number
-    startX: number
-    startY: number
-    distance: number
-    startTime: number
-    duration: number
-  } | null>(null)
   const animationFrameRef = useRef<number>(0)
   const iconCanvasesRef = useRef<HTMLCanvasElement[]>([])
   const imagesLoadedRef = useRef<boolean[]>([])
@@ -124,7 +146,6 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
             offCtx.closePath()
             offCtx.clip()
 
-            // Draw the image
             offCtx.drawImage(img, 0, 0, iconSize, iconSize)
             offCtx.restore()
 
@@ -149,87 +170,44 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
     iconCanvasesRef.current = newIconCanvases
   }, [icons, images, iconSize, halfSize])
 
-  // Check if an icon was tapped/clicked and animate to it
-  const tryIconClick = useCallback((canvasX: number, canvasY: number) => {
-    iconPositions.forEach((icon) => {
-      const cosX = Math.cos(rotationRef.current.x)
-      const sinX = Math.sin(rotationRef.current.x)
-      const cosY = Math.cos(rotationRef.current.y)
-      const sinY = Math.sin(rotationRef.current.y)
-
-      const rotatedX = icon.x * cosY - icon.z * sinY
-      const rotatedZ = icon.x * sinY + icon.z * cosY
-      const rotatedY = icon.y * cosX + rotatedZ * sinX
-
-      const screenX = CANVAS_SIZE / 2 + rotatedX
-      const screenY = CANVAS_SIZE / 2 + rotatedY
-
-      const scale = (rotatedZ + 200) / 300
-      const radius = halfSize * scale
-      const dx = canvasX - screenX
-      const dy = canvasY - screenY
-
-      if (dx * dx + dy * dy < radius * radius) {
-        const targetX = -Math.atan2(
-          icon.y,
-          Math.sqrt(icon.x * icon.x + icon.z * icon.z)
-        )
-        const targetY = Math.atan2(icon.x, icon.z)
-
-        const currentX = rotationRef.current.x
-        const currentY = rotationRef.current.y
-        const distance = Math.sqrt(
-          Math.pow(targetX - currentX, 2) + Math.pow(targetY - currentY, 2)
-        )
-
-        const duration = Math.min(2000, Math.max(800, distance * 1000))
-
-        targetRotationRef.current = {
-          x: targetX,
-          y: targetY,
-          startX: currentX,
-          startY: currentY,
-          distance,
-          startTime: performance.now(),
-          duration,
-        }
-      }
-    })
-  }, [iconPositions, halfSize])
-
   // Unified pointer handlers
+  const pointerStartRef = useRef({ x: 0, y: 0 })
+  const isPendingDragRef = useRef(false)
+
   const handlePointerStart = useCallback((clientX: number, clientY: number) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
-
-    const canvasX = clientX - rect.left
-    const canvasY = clientY - rect.top
-
-    tryIconClick(canvasX, canvasY)
-
-    isDraggingRef.current = true
+    pointerStartRef.current = { x: clientX, y: clientY }
+    isPendingDragRef.current = true
+    isDraggingRef.current = false
     velocityRef.current = { x: 0, y: 0 }
     lastPointerRef.current = { x: clientX, y: clientY, time: performance.now() }
-  }, [tryIconClick])
+  }, [])
 
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
-    if (!isDraggingRef.current) return
+    if (!isPendingDragRef.current && !isDraggingRef.current) return
+
+    if (isPendingDragRef.current && !isDraggingRef.current) {
+      const dx = clientX - pointerStartRef.current.x
+      const dy = clientY - pointerStartRef.current.y
+      if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return
+      isDraggingRef.current = true
+      isPendingDragRef.current = false
+    }
 
     const now = performance.now()
     const dt = now - lastPointerRef.current.time
     const deltaX = clientX - lastPointerRef.current.x
     const deltaY = clientY - lastPointerRef.current.y
 
-    rotationRef.current = {
-      x: rotationRef.current.x + deltaY * DRAG_SENSITIVITY,
-      y: rotationRef.current.y - deltaX * DRAG_SENSITIVITY,
-    }
+    // Apply incremental rotation in screen space
+    const rx = rotateAroundX(-deltaY * DRAG_SENSITIVITY)
+    const ry = rotateAroundY(deltaX * DRAG_SENSITIVITY)
+    rotationMatRef.current = multiplyMat3(multiplyMat3(rx, ry), rotationMatRef.current)
 
     // Track velocity (normalize to per-frame ~16ms)
     if (dt > 0) {
       velocityRef.current = {
-        x: (deltaY * DRAG_SENSITIVITY) / dt * 16,
-        y: (-deltaX * DRAG_SENSITIVITY) / dt * 16,
+        x: (-deltaY * DRAG_SENSITIVITY) / dt * 16,
+        y: (deltaX * DRAG_SENSITIVITY) / dt * 16,
       }
     }
 
@@ -238,23 +216,15 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
 
   const handlePointerEnd = useCallback(() => {
     isDraggingRef.current = false
+    isPendingDragRef.current = false
   }, [])
 
   // Mouse events
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    hasMouseRef.current = true
     handlePointerStart(e.clientX, e.clientY)
   }, [handlePointerStart])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    hasMouseRef.current = true
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (rect) {
-      mousePosRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      }
-    }
     handlePointerMove(e.clientX, e.clientY)
   }, [handlePointerMove])
 
@@ -279,67 +249,31 @@ export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
       ctx.setTransform(dprRef.current, 0, 0, dprRef.current, 0, 0)
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
-      if (targetRotationRef.current) {
-        // Animated rotation to a clicked icon
-        const target = targetRotationRef.current
-        const elapsed = performance.now() - target.startTime
-        const progress = Math.min(1, elapsed / target.duration)
-        const easedProgress = easeOutCubic(progress)
-
-        rotationRef.current = {
-          x: target.startX + (target.x - target.startX) * easedProgress,
-          y: target.startY + (target.y - target.startY) * easedProgress,
-        }
-
-        if (progress >= 1) {
-          targetRotationRef.current = null
-        }
-      } else if (isDraggingRef.current) {
-        // Rotation handled in pointer move handlers
-      } else if (
-        Math.abs(velocityRef.current.x) > MIN_VELOCITY ||
-        Math.abs(velocityRef.current.y) > MIN_VELOCITY
-      ) {
-        // Momentum: apply velocity and decay with friction
-        rotationRef.current = {
-          x: rotationRef.current.x + velocityRef.current.x,
-          y: rotationRef.current.y + velocityRef.current.y,
-        }
-        velocityRef.current = {
-          x: velocityRef.current.x * FRICTION,
-          y: velocityRef.current.y * FRICTION,
-        }
-      } else if (hasMouseRef.current) {
-        // Desktop: mouse-position-driven auto-rotation
-        const centerX = CANVAS_SIZE / 2
-        const centerY = CANVAS_SIZE / 2
-        const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY)
-        const dx = mousePosRef.current.x - centerX
-        const dy = mousePosRef.current.y - centerY
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        const speed = 0.003 + (distance / maxDistance) * 0.01
-
-        rotationRef.current = {
-          x: rotationRef.current.x + (dy / CANVAS_SIZE) * speed,
-          y: rotationRef.current.y + (dx / CANVAS_SIZE) * speed,
-        }
-      } else {
-        // Touch/no-mouse: gentle auto-spin
-        rotationRef.current = {
-          y: rotationRef.current.y + AUTO_SPIN_SPEED,
-          x: rotationRef.current.x,
+      // Skip auto-rotation while dragging (handlePointerMove applies rotation directly)
+      if (!isDraggingRef.current) {
+        if (
+          Math.abs(velocityRef.current.x) > MIN_VELOCITY ||
+          Math.abs(velocityRef.current.y) > MIN_VELOCITY
+        ) {
+          // Momentum: apply velocity and decay with friction
+          const rx = rotateAroundX(velocityRef.current.x)
+          const ry = rotateAroundY(velocityRef.current.y)
+          rotationMatRef.current = multiplyMat3(multiplyMat3(rx, ry), rotationMatRef.current)
+          velocityRef.current = {
+            x: velocityRef.current.x * FRICTION,
+            y: velocityRef.current.y * FRICTION,
+          }
+        } else {
+          // Gentle auto-spin when idle
+          const ry = rotateAroundY(AUTO_SPIN_SPEED)
+          rotationMatRef.current = multiplyMat3(ry, rotationMatRef.current)
         }
       }
 
-      iconPositions.forEach((icon, index) => {
-        const cosX = Math.cos(rotationRef.current.x)
-        const sinX = Math.sin(rotationRef.current.x)
-        const cosY = Math.cos(rotationRef.current.y)
-        const sinY = Math.sin(rotationRef.current.y)
+      const mat = rotationMatRef.current
 
-        const rotatedX = icon.x * cosY - icon.z * sinY
-        const rotatedZ = icon.x * sinY + icon.z * cosY
-        const rotatedY = icon.y * cosX + rotatedZ * sinX
+      iconPositions.forEach((icon, index) => {
+        const [rotatedX, rotatedY, rotatedZ] = applyMat3(mat, icon.x, icon.y, icon.z)
 
         const scale = (rotatedZ + 200) / 300
         const opacity = Math.max(0.2, Math.min(1, (rotatedZ + 150) / 200))
