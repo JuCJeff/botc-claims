@@ -6,19 +6,18 @@ import {
   CheckboxGroup,
   Checkbox,
   Label,
-  Description,
 } from '@heroui/react';
-import { BASE_EDITIONS } from '@/lib/constants';
+import { CHARACTER_TYPES } from '@/lib/constants';
 
-type SelectEditionProps = {
-  selectedEditions: string[];
-  onSelectedEditionsChange: (editions: string[]) => void;
+type SelectCharacterTypeProps = {
+  selectedTypes: string[];
+  onSelectedTypesChange: (types: string[]) => void;
 };
 
-export default function SelectEdition({
-  selectedEditions,
-  onSelectedEditionsChange,
-}: SelectEditionProps) {
+export default function SelectCharacterType({
+  selectedTypes,
+  onSelectedTypesChange,
+}: SelectCharacterTypeProps) {
   return (
     <div className='flex flex-col w-full max-w-sm'>
       <Accordion variant='surface'>
@@ -26,9 +25,9 @@ export default function SelectEdition({
           <Accordion.Heading>
             <Accordion.Trigger>
               <p className='text-primary'>
-                {selectedEditions.length > 0
-                  ? selectedEditions.join(', ')
-                  : 'Game Edition'}
+                {selectedTypes.length > 0
+                  ? selectedTypes.join(', ')
+                  : 'Character Type'}
               </p>
               <Accordion.Indicator />
             </Accordion.Trigger>
@@ -36,38 +35,33 @@ export default function SelectEdition({
           <Accordion.Panel>
             <Accordion.Body>
               <CheckboxGroup
-                name='editions'
+                name='character-types'
                 className='text-start'
                 variant='secondary'
-                value={selectedEditions}
-                onChange={(value) =>
-                  onSelectedEditionsChange(value as string[])
-                }
+                value={selectedTypes}
+                onChange={(value) => onSelectedTypesChange(value as string[])}
               >
                 <div className='flex items-center justify-between'>
-                  <Label>Select game editions</Label>
-                  {selectedEditions.length > 0 && (
+                  <Label>Select character types</Label>
+                  {selectedTypes.length > 0 && (
                     <Button
                       type='button'
                       variant='outline'
                       className='text-sm'
-                      onClick={() => onSelectedEditionsChange([])}
+                      onClick={() => onSelectedTypesChange([])}
                     >
                       Clear all
                     </Button>
                   )}
                 </div>
 
-                {BASE_EDITIONS.map((edition) => (
-                  <Checkbox value={edition.name} key={edition.name}>
+                {CHARACTER_TYPES.map((type) => (
+                  <Checkbox value={type.name} key={type.name}>
                     <Checkbox.Control>
                       <Checkbox.Indicator />
                     </Checkbox.Control>
                     <Checkbox.Content>
-                      <Label>{edition.name}</Label>
-                      {edition.description && (
-                        <Description>{edition.description}</Description>
-                      )}
+                      <Label>{type.name}</Label>
                     </Checkbox.Content>
                   </Checkbox>
                 ))}

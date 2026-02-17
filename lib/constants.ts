@@ -20,3 +20,11 @@ export const BASE_EDITIONS = [
     description: 'Experimental characters',
   },
 ];
+
+export const CHARACTER_TYPES = [
+  { name: 'Townsfolk', queryValue: 'Townsfolk' },
+  { name: 'Outsider', queryValue: 'Outsider' },
+  { name: 'Minion', queryValue: 'Minion' },
+  { name: 'Demon', queryValue: 'Demon' },
+  { name: 'Traveller', queryValue: 'Traveller' },
+];
