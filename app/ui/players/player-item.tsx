@@ -68,7 +68,7 @@ const PlayerItem = ({
 
                 <p className='text-base'>{player.name}</p>
 
-                <div className='flex'>
+                <div className='flex flex-wrap'>
                   {player.selectedCharacters &&
                     player.selectedCharacters.length > 0 &&
                     player.selectedCharacters.map((character) => (
