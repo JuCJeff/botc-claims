@@ -100,7 +100,7 @@ const PlayerItem = ({
 
               <TextArea
                 key={`notes-${resetKey}`}
-                className='w-xs mt-4 bg-background text-base'
+                className='w-xs mt-2 bg-background text-base'
                 placeholder='Notes'
                 rows={3}
                 value={localNotes}
