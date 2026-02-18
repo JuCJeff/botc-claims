@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { dumbledor } from '@/app/fonts';
 import { motion } from 'motion/react';
+import { Button, Modal } from '@heroui/react';
 
 import type { Character } from '@/utils/types';
 
@@ -11,10 +12,10 @@ type CharacterTokenProp = {
 };
 
 const CharacterToken = ({ character }: CharacterTokenProp) => {
-  const { name, icon_url } = character;
+  const { name, icon_url, type, ability, flavor_text } = character;
 
   return (
-    <div className={`flex flex-col items-center gap-4 m-4`}>
+    <div className={`flex flex-col items-center gap-4 mx-4`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -80,6 +81,38 @@ const CharacterToken = ({ character }: CharacterTokenProp) => {
           </div>
         </div>
       </motion.div>
+
+      <Modal>
+        <Button variant='outline' size='sm' className='text-xs'>
+          Details
+        </Button>
+        <Modal.Backdrop>
+          <Modal.Container placement='center'>
+            <Modal.Dialog>
+              <Modal.CloseTrigger />
+              <Modal.Header>
+                <Modal.Heading>Character details</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body className='flex flex-col items-center text-center text-foreground px-4'>
+                <Image
+                  src={icon_url}
+                  alt={`Icon for ${name}`}
+                  width={256}
+                  height={256}
+                  sizes='96px'
+                  className='w-24 h-24'
+                />
+                <div className='flex flex-col gap-3'>
+                  <p className='font-semibold text-lg'>{name}</p>
+                  <p className='text-sm'>{type}</p>
+                  <p className='text-sm'>{ability}</p>
+                  <p className='text-sm font-light text-muted italic'>{flavor_text}</p>
+                </div>
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 };
