@@ -60,7 +60,7 @@ const CANVAS_SIZE = 350
 const FRICTION = 0.96           // velocity decay per frame after releasing drag
 const MIN_VELOCITY = 0.00005    // threshold below which momentum stops
 const AUTO_SPIN_SPEED = 0.002   // gentle Y-axis rotation when idle
-const DRAG_SENSITIVITY = 0.004  // pointer movement to rotation scaling
+const DRAG_SENSITIVITY = 0.007  // pointer movement to rotation scaling
 const DRAG_THRESHOLD = 5        // min px movement to distinguish drag from tap
 
 export function IconCloud({ icons, images, iconSize = 40 }: IconCloudProps) {
