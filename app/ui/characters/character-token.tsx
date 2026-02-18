@@ -86,7 +86,7 @@ const CharacterToken = ({ character }: CharacterTokenProp) => {
         <Button variant='outline' size='sm' className='text-xs'>
           Details
         </Button>
-        <Modal.Backdrop>
+        <Modal.Backdrop variant='blur'>
           <Modal.Container placement='center'>
             <Modal.Dialog>
               <Modal.CloseTrigger />
@@ -106,7 +106,9 @@ const CharacterToken = ({ character }: CharacterTokenProp) => {
                   <p className='font-semibold text-lg'>{name}</p>
                   <p className='text-sm'>{type}</p>
                   <p className='text-sm'>{ability}</p>
-                  <p className='text-sm font-light text-muted italic'>{flavor_text}</p>
+                  <p className='text-sm font-light text-muted italic'>
+                    {flavor_text}
+                  </p>
                 </div>
               </Modal.Body>
             </Modal.Dialog>
