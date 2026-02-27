@@ -5,6 +5,7 @@ import { useIsClient, useLocalStorage } from 'usehooks-ts';
 import { AnimatePresence, motion } from 'motion/react';
 import { Button } from '@heroui/react';
 import { IconCloud } from '@/components/ui/icon-cloud';
+import { Pointer } from '@/components/ui/pointer';
 
 const CharacterIconCloud = ({ images }: { images: string[] }) => {
   const [showCloud, setShowCloud] = useLocalStorage('showIconCloud', false, {
@@ -34,6 +35,7 @@ const CharacterIconCloud = ({ images }: { images: string[] }) => {
             className='relative flex size-full items-center justify-center overflow-hidden'
           >
             <IconCloud images={images} iconSize={80} />
+            <Pointer className='fill-primary' />
           </motion.div>
         )}
       </AnimatePresence>
