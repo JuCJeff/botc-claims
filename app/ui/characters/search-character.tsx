@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Autocomplete,
+  Button,
   EmptyState,
   Label,
   ListBox,
+  Modal,
   SearchField,
   Tag,
   TagGroup,
@@ -226,6 +228,40 @@ export default function SearchCharacter({
           </Autocomplete.Filter>
         </Autocomplete.Popover>
       </Autocomplete>
+
+      {selectedCharacters.length > 0 && (
+        <Modal>
+          <Button variant='outline' size='sm' className='mb-4 text-xs'>
+            Clear Selections
+          </Button>
+          <Modal.Backdrop>
+            <Modal.Container>
+              <Modal.Dialog className='sm:max-w-90'>
+                <Modal.CloseTrigger />
+                <Modal.Header>
+                  <Modal.Heading>Clear Selection</Modal.Heading>
+                </Modal.Header>
+                <Modal.Body>
+                  <p>Are you sure you want to clear the character selection?</p>
+                </Modal.Body>
+                <Modal.Footer className='flex gap-2'>
+                  <Button variant='outline' slot='close' className='flex-1'>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant='danger'
+                    slot='close'
+                    onClick={() => setSelectedKeys([])}
+                    className='flex-1'
+                  >
+                    Confirm
+                  </Button>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      )}
 
       {/* Display selected character tokens */}
       {selectedCharacters.length > 0 && (
