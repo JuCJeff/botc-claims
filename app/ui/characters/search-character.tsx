@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { animate } from 'motion/react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Autocomplete,
   EmptyState,
@@ -46,8 +45,8 @@ export default function SearchCharacter({
   initialCharacters = [],
   onCharactersChange,
 }: SearchCharacterType) {
-  const [selectedKeys, setSelectedKeys] = useState<Key[]>(
-    () => initialCharacters.map((c) => c.name),
+  const [selectedKeys, setSelectedKeys] = useState<Key[]>(() =>
+    initialCharacters.map((c) => c.name),
   );
   const [selectedCharacters, setSelectedCharacters] = useState<Character[]>(
     () => {
@@ -59,88 +58,9 @@ export default function SearchCharacter({
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const cacheRef = useRef(characterCache);
-  const triggerRef = useRef<HTMLDivElement>(null);
-
-  const [isMobile, setIsMobile] = useState(false);
-  const isScrollingRef = useRef(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
-    setIsMobile(mediaQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
-  const scrollToBottom = useCallback((element: HTMLElement): Promise<void> => {
-    return new Promise((resolve) => {
-      // Prevent multiple simultaneous scrolls
-      if (isScrollingRef.current) {
-        resolve();
-        return;
-      }
-
-      const extraPadding = 16; // Small extra space above trigger
-      const bottomPadding = element.offsetHeight + extraPadding;
-      const visibleHeight = window.visualViewport?.height ?? window.innerHeight;
-      const elementRect = element.getBoundingClientRect();
-
-      // Target: position trigger above the keyboard area
-      let targetY =
-        elementRect.top +
-        window.scrollY -
-        visibleHeight +
-        element.offsetHeight +
-        bottomPadding;
-
-      // Clamp to valid scroll bounds
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      targetY = Math.max(0, Math.min(targetY, maxScroll));
-
-      // Skip if already at target position
-      if (Math.abs(window.scrollY - targetY) < 5) {
-        resolve();
-        return;
-      }
-
-      isScrollingRef.current = true;
-
-      animate(window.scrollY, targetY, {
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        onUpdate: (value: number) => window.scrollTo(0, value),
-        onComplete: () => {
-          isScrollingRef.current = false;
-          resolve();
-        },
-      });
-    });
-  }, []);
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-
-    // On mobile: scroll when user types
-    if (isMobile && triggerRef.current) {
-      scrollToBottom(triggerRef.current);
-    }
-  };
-
-  const handleOpenChange = async (open: boolean) => {
-    if (!open) {
-      setIsOpen(false);
-      return;
-    }
-
-    // On mobile: scroll first, then open popover
-    if (isMobile && triggerRef.current) {
-      await scrollToBottom(triggerRef.current);
-    }
-
-    setIsOpen(true);
   };
 
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -205,21 +125,8 @@ export default function SearchCharacter({
 
   return (
     <div className='flex flex-col items-center w-full'>
-      {/* Display selected character tokens */}
-      {selectedCharacters.length > 0 && (
-        <div className='flex w-full max-w-sm overflow-x-auto px-4 snap-x snap-mandatory'>
-          <div className='flex justify-center gap-6 pb-4'>
-            {selectedCharacters.map((character) => (
-              <div key={character.name} className='snap-center'>
-                <CharacterToken character={character} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <Autocomplete
-        className='w-xs mt-2'
+        className='min-w-xs my-2'
         placeholder='Select characters'
         selectionMode='multiple'
         variant='secondary'
@@ -227,13 +134,12 @@ export default function SearchCharacter({
         onChange={(keys: Key | Key[] | null) => {
           setSelectedKeys(keys as Key[]);
           setSearchValue('');
-          setIsOpen(false);
         }}
         isOpen={isOpen}
-        onOpenChange={handleOpenChange}
+        onOpenChange={setIsOpen}
       >
         <Label className='sr-only'>Search for a character</Label>
-        <Autocomplete.Trigger ref={triggerRef} className='bg-background'>
+        <Autocomplete.Trigger className='bg-background'>
           <Autocomplete.Value>
             {({
               defaultChildren,
@@ -263,7 +169,7 @@ export default function SearchCharacter({
                         <Tag
                           key={characterName.id}
                           id={characterName.id}
-                          className='px-2'
+                          className='px-2 **:data-[slot=tag-remove-button]:p-1.5' // increase the click area of the remove x button
                           textValue={characterName.name}
                         >
                           <AnimatedShinyText className='text-sm px-1'>
@@ -281,8 +187,7 @@ export default function SearchCharacter({
         </Autocomplete.Trigger>
         <Autocomplete.Popover
           className='bg-background'
-          placement={isMobile ? 'top' : 'bottom'}
-          shouldFlip={!isMobile}
+          placement='bottom'
         >
           <Autocomplete.Filter filter={contains}>
             <SearchField
@@ -321,6 +226,19 @@ export default function SearchCharacter({
           </Autocomplete.Filter>
         </Autocomplete.Popover>
       </Autocomplete>
+
+      {/* Display selected character tokens */}
+      {selectedCharacters.length > 0 && (
+        <div className='flex w-full max-w-sm overflow-x-auto px-4 snap-x snap-mandatory'>
+          <div className='flex justify-center gap-6 pb-2'>
+            {selectedCharacters.map((character) => (
+              <div key={character.name} className='snap-center'>
+                <CharacterToken character={character} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
