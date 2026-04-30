@@ -76,8 +76,8 @@ const PlayerItem = ({
                         key={character.name}
                         src={character.icon_url}
                         alt={character.name}
-                        width={591}
-                        height={591}
+                        width={64}
+                        height={64}
                         className='rounded-full w-8 h-8'
                       />
                     ))}
