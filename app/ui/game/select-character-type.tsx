@@ -10,13 +10,13 @@ import {
 import { CHARACTER_TYPES } from '@/lib/constants';
 
 type SelectCharacterTypeProps = {
-  selectedTypes: string[];
-  onSelectedTypesChange: (types: string[]) => void;
+  selectedCharacterTypes: string[];
+  onSelectedCharacterTypesChange: (types: string[]) => void;
 };
 
 export default function SelectCharacterType({
-  selectedTypes,
-  onSelectedTypesChange,
+  selectedCharacterTypes: selectedCharacterTypes,
+  onSelectedCharacterTypesChange,
 }: SelectCharacterTypeProps) {
   return (
     <div className='flex flex-col w-full max-w-sm'>
@@ -25,8 +25,8 @@ export default function SelectCharacterType({
           <Accordion.Heading>
             <Accordion.Trigger>
               <p className='text-primary'>
-                {selectedTypes.length > 0
-                  ? selectedTypes.join(', ')
+                {selectedCharacterTypes.length > 0
+                  ? selectedCharacterTypes.join(', ')
                   : 'Character Type'}
               </p>
               <Accordion.Indicator />
@@ -38,17 +38,19 @@ export default function SelectCharacterType({
                 name='character-types'
                 className='text-start'
                 variant='secondary'
-                value={selectedTypes}
-                onChange={(value) => onSelectedTypesChange(value as string[])}
+                value={selectedCharacterTypes}
+                onChange={(value) =>
+                  onSelectedCharacterTypesChange(value as string[])
+                }
               >
                 <div className='flex items-center justify-between'>
                   <Label>Select character types</Label>
-                  {selectedTypes.length > 0 && (
+                  {selectedCharacterTypes.length > 0 && (
                     <Button
                       type='button'
                       variant='outline'
                       className='text-sm'
-                      onClick={() => onSelectedTypesChange([])}
+                      onClick={() => onSelectedCharacterTypesChange([])}
                     >
                       Clear all
                     </Button>

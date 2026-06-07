@@ -31,15 +31,13 @@ export default function GameSetup({
     { initializeWithValue: false },
   );
 
-  const [selectedTypes, setSelectedTypes] = useLocalStorage<string[]>(
-    'selectedTypes',
-    [],
-    { initializeWithValue: false },
-  );
+  const [selectedCharaterTypes, setSelectedCharacterTypes] = useLocalStorage<
+    string[]
+  >('selectedCharacterTypes', [], { initializeWithValue: false });
 
   const { filteredCharacters, shuffledIconImages } = useCharacterFilter({
     selectedEditions,
-    selectedTypes,
+    selectedCharacterTypes: selectedCharaterTypes,
     allCharacters,
     editionCharacterNames,
     typeCharacterNames,
@@ -55,14 +53,14 @@ export default function GameSetup({
           isExpanded={isFilterExpanded}
           onExpandedChange={setIsFilterExpanded}
         >
-          <Disclosure.Heading>
+          <Disclosure.Heading className='text-primary'>
             <Button
               slot='trigger'
-              variant='primary'
-              size='sm'
-              className='bg-primary text-background'
+              variant='tertiary'
+              size='md'
+              className='w-full'
             >
-              <p className='text-xs'>Filters</p>
+              <p className='text-sm'>Filters</p>
               <Disclosure.Indicator />
             </Button>
           </Disclosure.Heading>
@@ -73,8 +71,8 @@ export default function GameSetup({
                 onSelectedEditionsChange={setSelectedEditions}
               />
               <SelectCharacterType
-                selectedTypes={selectedTypes}
-                onSelectedTypesChange={setSelectedTypes}
+                selectedCharacterTypes={selectedCharaterTypes}
+                onSelectedCharacterTypesChange={setSelectedCharacterTypes}
               />
             </Disclosure.Body>
           </Disclosure.Content>
@@ -83,7 +81,7 @@ export default function GameSetup({
       <AddPlayer characters={filteredCharacters} />
 
       {/* Icon cloud will only appear if at least one of the filter is being selected */}
-      {(selectedEditions.length > 0 || selectedTypes.length > 0) &&
+      {(selectedEditions.length > 0 || selectedCharaterTypes.length > 0) &&
         shuffledIconImages.length > 0 && (
           <CharacterIconCloud images={shuffledIconImages} />
         )}

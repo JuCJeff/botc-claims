@@ -6,7 +6,7 @@ import type { AutoCompleteItem } from '@/utils/types';
 
 type UseCharacterFilterProps = {
   selectedEditions: string[];
-  selectedTypes: string[];
+  selectedCharacterTypes: string[];
   allCharacters: AutoCompleteItem[];
   editionCharacterNames: Record<string, string[]>;
   typeCharacterNames: Record<string, string[]>;
@@ -15,7 +15,7 @@ type UseCharacterFilterProps = {
 
 export function useCharacterFilter({
   selectedEditions,
-  selectedTypes,
+  selectedCharacterTypes,
   allCharacters,
   editionCharacterNames,
   typeCharacterNames,
@@ -23,7 +23,7 @@ export function useCharacterFilter({
 }: UseCharacterFilterProps) {
   const filteredCharacters = useMemo(() => {
     const hasEditions = selectedEditions.length > 0;
-    const hasTypes = selectedTypes.length > 0;
+    const hasTypes = selectedCharacterTypes.length > 0;
 
     if (!hasEditions && !hasTypes) return allCharacters;
 
@@ -39,7 +39,9 @@ export function useCharacterFilter({
     let typeNames: Set<string> | null = null;
     if (hasTypes) {
       typeNames = new Set(
-        selectedTypes.flatMap((type) => typeCharacterNames[type] ?? []),
+        selectedCharacterTypes.flatMap(
+          (type) => typeCharacterNames[type] ?? [],
+        ),
       );
     }
 
@@ -55,7 +57,7 @@ export function useCharacterFilter({
     return characterNamesToAutoCompleteItems(intersected);
   }, [
     selectedEditions,
-    selectedTypes,
+    selectedCharacterTypes,
     allCharacters,
     editionCharacterNames,
     typeCharacterNames,
@@ -63,9 +65,7 @@ export function useCharacterFilter({
 
   const shuffledIconImages = useMemo(() => {
     const names = filteredCharacters.map((c) => c.name);
-    const icons = names
-      .map((name) => characterIconMap[name])
-      .filter(Boolean);
+    const icons = names.map((name) => characterIconMap[name]).filter(Boolean);
     return shuffle(icons);
   }, [filteredCharacters, characterIconMap]);
 
