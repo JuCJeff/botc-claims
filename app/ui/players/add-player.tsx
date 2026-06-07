@@ -91,7 +91,7 @@ const AddPlayer = ({ characters }: AddUserProps) => {
     <div className='flex flex-col items-center w-full'>
       <Form className='flex gap-2 items-center my-4' onSubmit={handleAddName}>
         <Label htmlFor='name' className='text-lg text-primary'>
-          <TextAnimate animation='fadeIn' by='line' as='p'>
+          <TextAnimate animation='fadeIn' by='line' as='p' once>
             Player
           </TextAnimate>
         </Label>
