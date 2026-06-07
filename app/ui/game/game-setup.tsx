@@ -5,10 +5,10 @@ import { useLocalStorage } from 'usehooks-ts';
 import { Button, Disclosure } from '@heroui/react';
 import { useCharacterFilter } from '@/hooks/use-character-filter';
 
-import SelectEdition from './select-edition';
-import SelectCharacterType from './select-character-type';
 import AddPlayer from '../players/add-player';
 import CharacterIconCloud from '../characters/character-icon-cloud';
+import SelectCharacterType from './select-character-type';
+import SelectEdition from './select-edition';
 
 import type { AutoCompleteItem } from '@/utils/types';
 
@@ -78,6 +78,7 @@ export default function GameSetup({
           </Disclosure.Content>
         </Disclosure>
       </div>
+
       <AddPlayer characters={filteredCharacters} />
 
       {/* Icon cloud will only appear if at least one of the filter is being selected */}
