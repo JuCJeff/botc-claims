@@ -103,8 +103,8 @@ const CharacterToken = ({ character }: CharacterTokenProp) => {
                   className='w-24 h-24'
                 />
                 <div className='flex flex-col gap-3'>
-                  <p className='font-semibold text-lg'>{name}</p>
-                  <p className='text-sm'>{type}</p>
+                  <p className='text-lg font-bold'>{name}</p>
+                  <p className='text-sm font-semibold'>{type}</p>
                   <p className='text-sm'>{ability}</p>
                   <p className='text-sm font-light text-muted italic'>
                     {flavor_text}
