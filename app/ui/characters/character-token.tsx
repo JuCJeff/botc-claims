@@ -15,7 +15,7 @@ const CharacterToken = ({ character }: CharacterTokenProp) => {
   const { name, icon_url, type, ability, flavor_text } = character;
 
   return (
-    <div className={`flex flex-col items-center gap-4 mx-4`}>
+    <div className={`flex flex-col items-center gap-4 mx-4 py-1`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
