@@ -59,10 +59,19 @@ export default function SearchCharacter({
   );
   const [searchValue, setSearchValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTokenIndex, setActiveTokenIndex] = useState(0);
   const cacheRef = useRef(characterCache);
+  const tokenScrollRef = useRef<HTMLDivElement>(null);
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
+  };
+
+  const handleTokenScroll = () => {
+    const container = tokenScrollRef.current;
+    if (!container) return;
+    const itemWidth = container.scrollWidth / selectedCharacters.length;
+    setActiveTokenIndex(Math.round(container.scrollLeft / itemWidth));
   };
 
   const { contains } = useFilter({ sensitivity: 'base' });
@@ -265,15 +274,31 @@ export default function SearchCharacter({
 
       {/* Display selected character tokens */}
       {selectedCharacters.length > 0 && (
-        <div className='flex w-full max-w-sm overflow-x-auto px-4 snap-x snap-mandatory'>
-          <div className='flex justify-center gap-6 pb-2'>
+        <>
+          <div
+            ref={tokenScrollRef}
+            className='flex w-full overflow-x-auto snap-x snap-mandatory'
+            onScroll={handleTokenScroll}
+          >
             {selectedCharacters.map((character) => (
-              <div key={character.name} className='snap-center'>
+              <div key={character.name} className='snap-center flex-none w-full flex justify-center'>
                 <CharacterToken character={character} />
               </div>
             ))}
           </div>
-        </div>
+          {selectedCharacters.length > 1 && (
+            <div className='flex gap-1.5 my-2 px-2.5 py-1.5 rounded-full bg-muted/25'>
+              {selectedCharacters.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                    i === activeTokenIndex ? 'bg-foreground' : 'bg-foreground/25'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
